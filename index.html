@@ -1,255 +1,584 @@
-<!doctype html>
+<!DOCTYPE html>
 <html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>李艳 · AI 产品经理作品集</title>
+    <meta
+      name="description"
+      content="李艳 AI 产品经理作品集：LLM 应用、RAG、AI 医疗与政务场景、AIGC 营销工具、产品评估体系。"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <canvas id="particle-field" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
 
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>AI Product Manager Portfolio</title>
-  <script type="importmap">
-    {
-      "imports": {
-        "three": "https://cdn.jsdelivr.net/npm/three@0.160.0/build/three.module.js",
-        "three/examples/jsm/loaders/GLTFLoader": "https://cdn.jsdelivr.net/npm/three@0.160.0/examples/jsm/loaders/GLTFLoader.js"
-      }
-    }
-    </script>
-  <script>
-    if ("scrollRestoration" in history) history.scrollRestoration = "manual";
-    window.scrollTo(0, 0);
-  </script>
-  <link rel="stylesheet" href="./styles.css?v=20260513-2055" />
-</head>
-
-<body>
-  <!-- CLI Preloader -->
-  <div id="cli-preloader" class="cli-preloader">
-    <div class="cli-window">
-      <div class="cli-header">
-        <div class="cli-buttons">
-          <span></span><span></span><span></span>
-        </div>
-        <div class="cli-title">liyan@universe ~ zsh</div>
-      </div>
-      <div class="cli-body" id="cli-body"></div>
-    </div>
-  </div>
-
-  <div id="particle-container"></div>
-  <script type="module" src="./particle-effect.js"></script>
-  <div class="cursor-glow" aria-hidden="true"></div>
-  <canvas id="signalCanvas" aria-hidden="true"></canvas>
-
-  <main class="profile-shell">
-    <aside class="profile-sidebar">
-      <a class="brand magnetic" href="#about" aria-label="AI 产品经理作品集">
-        <div class="brand-mark">
-          <img src="./avatar.png" alt="Liyan Avatar" />
-        </div>
-        <span>liyan</span>
+    <header class="site-header">
+      <a class="brand" href="#top" aria-label="返回顶部">
+        <span class="brand-mark">李</span>
+        <span>
+          <strong>李艳 · AI 产品经理</strong>
+          <small>大模型 · 检索增强 · AI 工作流</small>
+        </span>
       </a>
 
-      <nav class="module-nav" aria-label="作品集模块">
-        <a class="active magnetic" href="#about">
-          <span>👩🏻‍💻</span>
-          <strong>关于我</strong>
-        </a>
-        <a class="magnetic" href="#interests">
-          <span>🧠</span>
-          <strong>我的兴趣</strong>
-        </a>
-        <a class="magnetic" href="#career">
-          <span>🧬</span>
-          <strong>职业生涯</strong>
-        </a>
-        <a class="magnetic" href="#projects">
-          <span>🗂️</span>
-          <strong>我的项目</strong>
-        </a>
-        <a class="magnetic" href="#sideworks">
-          <span>💻</span>
-          <strong>我的作品</strong>
-        </a>
-        <a class="magnetic" href="#next">
-          <span>🛰️</span>
-          <strong>我的计划</strong>
-        </a>
+      <nav class="main-nav" aria-label="主导航">
+        <a href="#profile">个人优势</a>
+        <a href="#work">项目作品</a>
+        <a href="#writing">我的文章</a>
+        <a href="#interest">个人兴趣</a>
+        <a href="#contact">与我联系</a>
       </nav>
 
-      <div class="sidebar-card">
-        <p>AI 产品经理</p>
-        <strong>0→1 · Agent · RAG · 降本增效</strong>
+      <button class="availability" type="button" data-contact-modal onclick="openContactModal()">
+        <span></span>
+        开放求职机会
+      </button>
+    </header>
+
+    <main id="top">
+      <section class="hero" aria-labelledby="hero-title">
+        <div class="hero-core">
+          <p class="eyebrow"><span></span> 2026 作品集</p>
+          <h1 id="hero-title">
+            <span>李艳</span>
+            <span>AI 产品经理</span>
+          </h1>
+          <div class="hero-tags" aria-label="核心方向">
+            <span>LLM 应用</span>
+            <span>RAG / Agent</span>
+            <span>AI 医疗与政务</span>
+            <span>0→1 落地</span>
+          </div>
+          <p class="hero-copy">
+            6 年产品经验，2 年 AI 产品经理经验。专注把 LLM、RAG、语音识别、
+            信息抽取和评估体系落到真实业务现场，做可交付、可合规、可衡量的 AI 产品。
+          </p>
+          <div class="hero-actions">
+            <a class="primary-cta" href="#work">
+              查看项目
+              <span aria-hidden="true">→</span>
+            </a>
+            <a class="ghost-cta" href="#profile">查看优势</a>
+          </div>
+        </div>
+
+        <div class="hero-showcase">
+          <aside class="hero-person" aria-label="李艳头像与身份">
+            <img src="./assets/liyan-avatar.jpg" alt="李艳头像" />
+            <div>
+              <span>李艳</span>
+              <strong>AI 产品经理</strong>
+              <p>6 年产品经验 · 2 年 AI 产品经验</p>
+            </div>
+          </aside>
+
+          <div class="hero-proof" aria-label="首页项目摘要">
+            <div>
+              <span>01</span>
+              <strong>AI 传染病调查系统</strong>
+              <p>流调时长 90 分钟 → 40 分钟</p>
+            </div>
+            <div>
+              <span>02</span>
+              <strong>AI 电子胸牌系统</strong>
+              <p>2 个月独立交付完整 MVP</p>
+            </div>
+            <div>
+              <span>03</span>
+              <strong>AI 小红书营销内容生成</strong>
+              <p>生成成功率 92%，单篇内容生成小于 1 分钟</p>
+            </div>
+          </div>
+        </div>
+
+        <aside class="hero-panel" aria-label="职业亮点">
+          <div class="panel-line">
+            <span>方向</span>
+            <strong>AI 产品经理 / LLM 应用产品</strong>
+          </div>
+          <div class="panel-line">
+            <span>方法</span>
+            <strong>从业务现场到模型评估闭环</strong>
+          </div>
+          <div class="panel-line">
+            <span>价值</span>
+            <strong>效率提升 · 合规落地 · 商业验证</strong>
+          </div>
+        </aside>
+
+      </section>
+
+      <section id="profile" class="section profile-section">
+        <div class="section-kicker">个人优势</div>
+        <div class="section-head">
+          <h2>懂业务现场，也懂 AI 落地边界</h2>
+          <p>
+            我的产品方法不是追热点，而是把一线流程、模型能力、合规约束和业务指标放到同一张图里，
+            从需求定义推进到可上线的 AI 产品。
+          </p>
+        </div>
+
+        <div class="profile-grid">
+          <article class="profile-card reveal">
+            <span>01</span>
+            <h3>业务问题拆解</h3>
+            <p>用跟访、访谈和流程拆解，把“效率低”还原成认知负载、数据标准、工具适配等根因。</p>
+          </article>
+          <article class="profile-card reveal">
+            <span>02</span>
+            <h3>AI 方案设计</h3>
+            <p>熟悉 Prompt、RAG、ASR、NER、LLM 校验、私有化部署等方案的边界和取舍。</p>
+          </article>
+          <article class="profile-card reveal">
+            <span>03</span>
+            <h3>评估体系搭建</h3>
+            <p>构建标注集、评估集和低分样本回捞机制，用准确率、完整率、幻觉控制驱动迭代。</p>
+          </article>
+          <article class="profile-card reveal">
+            <span>04</span>
+            <h3>跨团队交付</h3>
+            <p>协调业务、算法、研发、采购和合规团队，把 0→1 方案推进到 MVP、招标或上线。</p>
+          </article>
+        </div>
+      </section>
+
+      <section id="work" class="section work-section">
+        <div class="section-kicker">精选项目</div>
+        <div class="section-head">
+          <h2>三组最能代表我的 AI 产品项目</h2>
+          <p>
+            从疾控流调、院前急救到新消费营销，每个案例都围绕真实场景中的 AI 落地问题展开。
+          </p>
+        </div>
+
+        <div class="work-list">
+          <article class="work-item reveal" data-case-card="agent">
+            <div class="work-visual visual-agent">
+              <div class="case-screen case-screen-agent">
+                <div class="case-screen-top">
+                  <span></span>
+                  <strong>流调智能工作台</strong>
+                </div>
+                <div class="agent-map">
+                  <span class="agent-node node-main">病例 A</span>
+                  <span class="agent-node node-b">密接 12</span>
+                  <span class="agent-node node-c">场所 4</span>
+                  <span class="agent-line line-a"></span>
+                  <span class="agent-line line-b"></span>
+                </div>
+                <div class="agent-transcript">
+                  <span>问询转写</span>
+                  <strong>发热时间、活动轨迹、接触人员已自动抽取</strong>
+                </div>
+              </div>
+            </div>
+            <div class="work-copy">
+              <p class="work-index">案例 01</p>
+              <h3>AI 传染病调查系统</h3>
+              <p>
+                面向疾控一线调查人员，设计 AI 多轮对话、信息抽取、传播链溯源和私有化部署方案，
+                把单次流调从 90 分钟压缩到 40 分钟。
+              </p>
+              <dl>
+                <div>
+                  <dt>核心指标</dt>
+                  <dd>效率提升 50%</dd>
+                </div>
+                <div>
+                  <dt>我的工作</dt>
+                  <dd>需求定义、AI 对话引擎、评估体系、项目统筹推进</dd>
+                </div>
+              </dl>
+              <div class="work-actions">
+                <button class="ghost-cta mini-cta" type="button" data-case-modal="agent" onclick="openCaseModal('agent')">快速查看</button>
+                <a class="ghost-cta mini-cta" href="./demos/ai-liudiao.html" target="_blank" rel="noreferrer">
+                  打开展示
+                </a>
+                <a class="primary-cta mini-cta" href="./cases/agent.html">
+                  查看详情
+                  <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <article class="work-item reveal" data-case-card="rag">
+            <div class="work-visual visual-rag">
+              <div class="case-screen case-screen-triage">
+                <div class="triage-priority">
+                  <span>AI 任务助手</span>
+                  <strong>SOS</strong>
+                  <small>一键救援响应</small>
+                </div>
+                <div class="triage-vitals">
+                  <span>任务状态 · 上报中</span>
+                  <span>GPS · 已到位</span>
+                  <span>SOP 查询 · 可用</span>
+                </div>
+                <div class="triage-rules">
+                  <span>Agent 能力</span>
+                  <strong>任务获取 · 状态上报 · 请求救援</strong>
+                </div>
+              </div>
+            </div>
+            <div class="work-copy">
+              <p class="work-index">案例 02</p>
+              <h3>AI 电子胸牌系统</h3>
+              <p>
+                面向应急演练前线救援人员，设计集身份展示、任务状态、AI 动态提醒与一键求援于一体的智能 Agent App，2 个月独立交付完整 PRD 与原型。
+              </p>
+              <dl>
+                <div>
+                  <dt>核心指标</dt>
+                  <dd>覆盖 6 支救援队、60 台设备，3 次演练验证</dd>
+                </div>
+                <div>
+                  <dt>我的工作</dt>
+                  <dd>需求分析、Agent 能力设计、交互流程、PRD 输出</dd>
+                </div>
+              </dl>
+              <div class="work-actions">
+                <button class="ghost-cta mini-cta" type="button" data-case-modal="rag" onclick="openCaseModal('rag')">快速查看</button>
+                <a class="ghost-cta mini-cta" href="./demos/ai-badge.html" target="_blank" rel="noreferrer">
+                  打开展示
+                </a>
+                <a class="primary-cta mini-cta" href="./cases/rag.html">
+                  查看详情
+                  <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+          </article>
+
+          <article class="work-item reveal" data-case-card="growth">
+            <div class="work-visual visual-growth">
+              <div class="case-screen case-screen-growth">
+                <div class="growth-metrics">
+                  <div>
+                    <span>生成成功率</span>
+                    <strong>92%</strong>
+                  </div>
+                  <div>
+                    <span>付费转化</span>
+                    <strong>18%</strong>
+                  </div>
+                  <div>
+                    <span>内容产能</span>
+                    <strong>3.6x</strong>
+                  </div>
+                </div>
+                <div class="growth-chart" aria-hidden="true">
+                  <span class="chart-line"></span>
+                  <i style="--x: 8%; --y: 70%"></i>
+                  <i style="--x: 28%; --y: 56%"></i>
+                  <i style="--x: 48%; --y: 42%"></i>
+                  <i style="--x: 68%; --y: 30%"></i>
+                  <i style="--x: 88%; --y: 18%"></i>
+                </div>
+                <div class="growth-funnel">
+                  <div>
+                    <span>选题</span>
+                    <strong style="--w: 88%"></strong>
+                  </div>
+                  <div>
+                    <span>标题</span>
+                    <strong style="--w: 92%"></strong>
+                  </div>
+                  <div>
+                    <span>正文</span>
+                    <strong style="--w: 84%"></strong>
+                  </div>
+                  <div>
+                    <span>标签</span>
+                    <strong style="--w: 78%"></strong>
+                  </div>
+                  <div>
+                    <span>合规</span>
+                    <strong style="--w: 96%"></strong>
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="work-copy">
+              <p class="work-index">案例 03</p>
+              <h3>AI 小红书营销内容生成</h3>
+              <p>
+                面向中型新消费品牌，独立完成内容生成、发布前风控和发布后监控一体化工具，
+                3 个月内推动 MVP 上线并验证付费转化。
+              </p>
+              <dl>
+                <div>
+                  <dt>核心指标</dt>
+                  <dd>笔记生成成功率 92%</dd>
+                </div>
+                <div>
+                  <dt>我的工作</dt>
+                  <dd>产品立项、Prompt 工程、模型微调、AI 效果评估</dd>
+                </div>
+              </dl>
+              <div class="work-actions">
+                <button class="ghost-cta mini-cta" type="button" data-case-modal="growth" onclick="openCaseModal('growth')">快速查看</button>
+                <a class="ghost-cta mini-cta" href="https://www.honjing8.top/" target="_blank" rel="noreferrer">
+                  打开网站
+                </a>
+                <a class="primary-cta mini-cta" href="./cases/growth.html">
+                  查看详情
+                  <span aria-hidden="true">→</span>
+                </a>
+              </div>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section class="section signal-section">
+        <div class="signal-board reveal">
+          <div>
+            <span>6年</span>
+            <p>产品经理经验</p>
+          </div>
+          <div>
+            <span>2年</span>
+            <p>AI 产品经理经验</p>
+          </div>
+          <div>
+            <span>500+</span>
+            <p>脱敏标注评估集</p>
+          </div>
+          <div>
+            <span style="white-space:nowrap">多省疾控</span>
+            <p>国家+地方落地</p>
+          </div>
+        </div>
+      </section>
+
+      <section id="writing" class="section writing-section">
+        <div class="section-kicker">我的文章</div>
+        <div class="section-head">
+          <h2>发布在人人都是产品经理的思考</h2>
+          <p>关于 AI 产品设计、交互逻辑和行业判断，点击可直接阅读全文。</p>
+        </div>
+        <div class="writing-list">
+          <article class="writing-card" data-article="article1">
+            <div class="writing-meta">
+              <span class="writing-tag">职场观察</span>
+              <span class="writing-date">2025-12-23</span>
+            </div>
+            <h3>FDE 是什么：不是销售工程师，也不是咨询顾问</h3>
+            <p>AI Agent 时代的部署难题正在催生一场角色革命。从 Palantir 发明的 FDE 模式到 OpenAI、Anthropic、Google 的集体跟进，这种将工程师派驻客户现场的做法，正在成为解决 AI 落地最后一公里的关键。</p>
+            <button class="ghost-cta mini-cta" type="button" data-open-article="article1" onclick="openArticle('article1')">阅读全文 →</button>
+          </article>
+
+          <article class="writing-card" data-article="article2">
+            <div class="writing-meta">
+              <span class="writing-tag">AI 交互</span>
+              <span class="writing-date">2026-02-03</span>
+            </div>
+            <h3>别再逼用户写 Prompt 了，那是产品经理的无能</h3>
+            <p>对话框正成为 AI 产品的设计雷区，它表面提供无限可能，实则暴露了产品经理的懒惰与无能。未来 AI 应转向意图捕捉与主动服务，从"问答"升级为"选择"。</p>
+            <button class="ghost-cta mini-cta" type="button" data-open-article="article2" onclick="openArticle('article2')">阅读全文 →</button>
+          </article>
+
+          <article class="writing-card" data-article="article3">
+            <div class="writing-meta">
+              <span class="writing-tag">AI 产品</span>
+              <span class="writing-date">2026-04-05</span>
+            </div>
+            <h3>为什么你的 AI 不是听不懂，而是"没拿住整件事"？</h3>
+            <p>AI 产品中最让人抓狂的"健忘症"和"左右互搏"问题，往往不是技术缺陷而是设计漏洞。本文深度拆解上下文管理的四大核心策略，以及让 AI 学会"主动遗忘"和"状态显形"的实战方法论。</p>
+            <button class="ghost-cta mini-cta" type="button" data-open-article="article3" onclick="openArticle('article3')">阅读全文 →</button>
+          </article>
+
+          <article class="writing-card" data-article="article4">
+            <div class="writing-meta">
+              <span class="writing-tag">AI Agent</span>
+              <span class="writing-date">2026-05-08</span>
+            </div>
+            <h3>Function Call：AI Agent 的手和脚</h3>
+            <p>大模型天生不擅长处理事实，它需要"手和脚"。Function Call 就是连接大模型推理能力和真实世界执行能力的桥梁，这篇文章用最直白的方式把它讲清楚。</p>
+            <button class="ghost-cta mini-cta" type="button" data-open-article="article4" onclick="openArticle('article4')">阅读全文 →</button>
+          </article>
+        </div>
+      </section>
+
+      <!-- 文章弹窗 -->
+      <div class="modal-layer" id="article-modal" aria-hidden="true">
+        <div class="modal-backdrop" data-close-article-modal></div>
+        <section class="case-modal article-modal-inner" role="dialog" aria-modal="true" aria-labelledby="article-modal-title">
+          <button class="modal-close" type="button" aria-label="关闭" data-close-article-modal>×</button>
+          <p class="section-kicker" id="article-modal-tag"></p>
+          <h2 id="article-modal-title"></h2>
+          <div class="article-modal-body" id="article-modal-body"></div>
+        </section>
       </div>
-    </aside>
 
-    <section class="profile-content">
-      <section id="about" class="module-section reveal">
-        <p class="eyebrow">Module 01</p>
-        <h1>About me</h1>
-        <article class="intro-card command-card" data-tilt>
-          <div class="command-stage" aria-hidden="true">
-            <div class="stage-toolbar">
-              <span></span><span></span><span></span>
-              <strong>AI PM Command Center</strong>
-            </div>
-            <div class="radar">
-              <div class="radar-sweep"></div>
-              <div class="radar-core">Offer Fit</div>
+      <section id="interest" class="section assistant-section">
+        <div class="section-kicker">个人兴趣</div>
+        <div class="assistant-shell reveal">
+          <div class="assistant-visual interest-media-wrap">
+            <div class="interest-carousel-inner">
+              <div class="carousel-track" id="carousel-track">
+                <div class="carousel-slide"><img src="./assets/interest/tt1.jpg" alt="乒乓球赛事" loading="lazy" style="object-position: top center"><div class="slide-caption">🏓 赛场侧记</div></div>
+                <div class="carousel-slide"><img src="./assets/interest/tt2.jpg" alt="乒乓球赛事" loading="lazy" style="object-position: top center"><div class="slide-caption">🏓 精彩对决</div></div>
+                <div class="carousel-slide"><img src="./assets/interest/tt3.jpg" alt="乒乓球赛场" loading="lazy" style="object-position: top center"><div class="slide-caption">🏓 赛场现场</div></div>
+                <div class="carousel-slide"><img src="./assets/interest/tt4.jpg" alt="乒乓球颁奖" loading="lazy" style="object-position: top center"><div class="slide-caption">🏆 澳门2026颁奖</div></div>
+                <div class="carousel-slide"><img src="./assets/interest/tt5.jpg" alt="乒乓球" loading="lazy" style="object-position: top center"><div class="slide-caption">🏓 赛场之外</div></div>
+                <div class="carousel-slide"><img src="./assets/interest/life1.jpg" alt="灯塔" loading="lazy"><div class="slide-caption">🌊 海边灯塔</div></div>
+                <div class="carousel-slide"><img src="./assets/interest/life2.jpg" alt="海边" loading="lazy" style="object-position: center 30%"><div class="slide-caption">🌊 海边记忆</div></div>
+                <div class="carousel-slide"><img src="./assets/interest/life3.jpg" alt="旅行" loading="lazy" style="object-position: center center"><div class="slide-caption">✈️ 旅途中</div></div>
+                <div class="carousel-slide carousel-slide-video"><video src="./assets/interest/video1.mp4" controls preload="none" playsinline poster="./assets/interest/video1_poster.jpg"></video><div class="slide-caption">🎥 旅行片段</div></div>
+                <div class="carousel-slide carousel-slide-video"><video src="./assets/interest/video2.mp4" controls preload="none" playsinline poster="./assets/interest/video2_poster.jpg"></video><div class="slide-caption">🎥 生活日常</div></div>
+              </div>
+              <button class="carousel-btn carousel-prev" id="carousel-prev" aria-label="上一张">‹</button>
+              <button class="carousel-btn carousel-next" id="carousel-next" aria-label="下一张">›</button>
+              <div class="carousel-dots" id="carousel-dots"></div>
             </div>
           </div>
-          <div>
-            <h2>我把 AI 能力翻译成用户愿意使用、业务愿意买单的产品。</h2>
+          <div class="assistant-copy">
+            <h2>工作之外，我是这样的人</h2>
             <p>
-              擅长从模糊场景里找到高频任务，用访谈、PRD、Prompt 设计、原型和数据实验快速验证。
-              我的作品集会让 HR 先看到定位，再看到证据，最后自然进入项目细节。
+              打乒乓球、读书、听播客是我日常最稳定的三件事。
+              球台上讲究节奏和预判，书里找慢下来的空间，小宇宙里装着各种有趣的脑袋——
+              这些和做产品其实没什么两样，都是在认真感受人。
             </p>
-            <div class="metric-row">
-              <span><b>3.8x</b> 原型交付效率</span>
-              <span><b>+41%</b> 转化实验提升</span>
-              <span><b>92%</b> 需求命中评分</span>
+            <div class="assistant-chat" id="assistant-chat" aria-live="polite">
+              <div class="chat-line bot">最近在听：小宇宙 · 最近在读：《置身事内》 · 最近在练：反手拧拉</div>
+            </div>
+            <div class="assistant-prompts" aria-label="兴趣快捷问题">
+              <button type="button" data-assistant-q="fit">🏓 乒乓球</button>
+              <button type="button" data-assistant-q="projects">📚 读书</button>
+              <button type="button" data-assistant-q="stack">🎙️ 小宇宙</button>
             </div>
           </div>
-        </article>
-      </section>
-
-      <section id="interests" class="module-section reveal">
-        <p class="eyebrow">Module 02</p>
-        <h1>My interests</h1>
-        <div class="skill-grid">
-          <article class="skill-card" data-tilt>
-            <span>🤖</span>
-            <h3>Agentic Workflow</h3>
-            <p>研究多 Agent 协作、任务拆解和人机交接边界，让 AI 产品可靠完成复杂任务。</p>
-          </article>
-          <article class="skill-card" data-tilt>
-            <span>📚</span>
-            <h3>RAG Knowledge UX</h3>
-            <p>关注知识切片、引用可信度、低置信度兜底，以及企业知识库的真实采用率。</p>
-          </article>
-          <article class="skill-card" data-tilt>
-            <span>📈</span>
-            <h3>Growth Experiment</h3>
-            <p>喜欢把 AI 用在增长链路里，快速生成假设、素材、分层和复盘洞察。</p>
-          </article>
         </div>
       </section>
 
-      <section id="career" class="module-section reveal">
-        <p class="eyebrow">Module 03</p>
-        <h1>Career journey</h1>
-        <div class="journey-list">
-          <article class="journey-card" data-tilt>
-            <div class="company-mark">A1</div>
-            <div class="journey-main">
-              <h2>AI Product Manager</h2>
-              <p>2024 - Now, Full-time</p>
-              <div class="chips">
-                <span>AI 产品规划</span>
-                <span>Agent 原型</span>
-                <span>RAG 问答</span>
-                <span>数据闭环</span>
-              </div>
-            </div>
-          </article>
-          <article class="journey-card" data-tilt>
-            <div class="company-mark">M2</div>
-            <div class="journey-main">
-              <h2>Product Growth Specialist</h2>
-              <p>2022 - 2024, Full-time</p>
-              <div class="chips">
-                <span>A/B Test</span>
-                <span>用户分层</span>
-                <span>转化漏斗</span>
-                <span>活动策略</span>
-              </div>
-            </div>
-          </article>
-          <article class="journey-card" data-tilt>
-            <div class="company-mark">U3</div>
-            <div class="journey-main">
-              <h2>UX Research & Product Intern</h2>
-              <p>2021 - 2022, Internship</p>
-              <div class="chips">
-                <span>用户访谈</span>
-                <span>竞品分析</span>
-                <span>PRD</span>
-                <span>可用性测试</span>
-              </div>
-            </div>
-          </article>
-        </div>
-      </section>
-
-      <section id="projects" class="module-section reveal">
-        <p class="eyebrow">Module 04</p>
-        <h1>Project highlights</h1>
-        <div class="journey-list">
-          <article class="project-card" data-tilt>
-            <div>
-              <span class="project-tag">Agent Product</span>
-              <h2>AI 简历诊断 Agent</h2>
-              <p>岗位匹配度分析、简历改写、面试题生成一体化，帮助求职者把经历映射到 JD。</p>
-            </div>
-            <strong>投递转化 +38%</strong>
-          </article>
-          <article class="project-card" data-tilt>
-            <div>
-              <span class="project-tag">RAG System</span>
-              <h2>智能知识库问答</h2>
-              <p>把散落 SOP、FAQ、案例库变成可追溯问答助手，降低运营团队检索成本。</p>
-            </div>
-            <strong>命中率 86%</strong>
-          </article>
-          <article class="project-card" data-tilt>
-            <div>
-              <span class="project-tag">Growth Copilot</span>
-              <h2>增长实验 Copilot</h2>
-              <p>自动生成实验假设、用户分层、文案方案和复盘摘要，让增长团队更快试错。</p>
-            </div>
-            <strong>转化 +41%</strong>
-          </article>
-        </div>
-      </section>
-
-      <section id="sideworks" class="module-section reveal">
-        <p class="eyebrow">Module 05</p>
-        <h1>Side works</h1>
-        <div class="side-grid">
-          <article class="side-card" data-tilt>
-            <h2>AI 面试题生成器</h2>
-            <p>输入岗位 JD 和简历，生成结构化追问、STAR 答题提示和薄弱项提醒。</p>
-          </article>
-          <article class="side-card" data-tilt>
-            <h2>Prompt Pattern Library</h2>
-            <p>沉淀需求分析、用户访谈、竞品拆解、PRD 生成等产品经理高频 Prompt。</p>
-          </article>
-          <article class="side-card" data-tilt>
-            <h2>个人效率 Agent</h2>
-            <p>把日程、资料整理、复盘写作串成半自动流程，减少重复劳动。</p>
-          </article>
-        </div>
-      </section>
-
-      <section id="next" class="module-section reveal">
-        <p class="eyebrow">Module 06</p>
-        <h1>Next destination</h1>
-        <article class="destination-card" data-tilt>
+      <section id="contact" class="section contact-section">
+        <div class="contact-shell reveal">
           <div>
-            <h2>希望加入正在认真做 AI Native 产品的团队。</h2>
+            <p class="section-kicker">与我联系</p>
+            <h2>正在寻找 AI 产品经理机会</h2>
             <p>
-              我适合 AI 应用层、效率工具、知识管理、招聘求职、增长平台等方向。
-              最想做的事，是把模型能力变成稳定、可解释、有商业结果的产品体验。
+              目标方向：AI 产品经理、LLM 应用产品、RAG/Agent 产品、AI 医疗/政务/B 端智能化产品。
+              我更适合需要从业务现场出发、推进 0→1 落地和评估闭环的团队。
             </p>
           </div>
-          <div class="contact-panel">
-            <a class="primary magnetic" href="mailto:hello@example.com">hello@example.com</a>
-            <a class="secondary magnetic" href="tel:+8613800000000">+86 138 0000 0000</a>
+          <div class="contact-actions">
+            <button class="primary-cta" type="button" data-contact-modal onclick="openContactModal()">
+              发送邮件
+              <span aria-hidden="true">→</span>
+            </button>
+            <a class="ghost-cta" href="#top">回到顶部</a>
           </div>
-        </article>
+        </div>
       </section>
+    </main>
+
+    <div class="modal-layer" id="case-modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal></div>
+      <section class="case-modal" role="dialog" aria-modal="true" aria-labelledby="case-modal-title">
+        <button class="modal-close" type="button" aria-label="关闭" data-close-modal>×</button>
+        <p class="section-kicker" id="case-modal-kicker">案例 01</p>
+          <h2 id="case-modal-title">AI 传染病调查系统</h2>
+        <p id="case-modal-desc"></p>
+        <div class="modal-metrics" id="case-modal-metrics"></div>
+        <div class="modal-flow" id="case-modal-flow"></div>
+        <div class="modal-actions">
+          <a class="primary-cta" id="case-modal-link" href="./cases/agent.html">
+            查看详情页
+            <span aria-hidden="true">→</span>
+          </a>
+          <button class="ghost-cta" type="button" data-close-modal>关闭</button>
+        </div>
+      </section>
+    </div>
+
+    <div class="modal-layer" id="contact-modal" aria-hidden="true">
+      <div class="modal-backdrop" data-close-modal></div>
+      <section class="case-modal contact-modal" role="dialog" aria-modal="true" aria-labelledby="contact-modal-title">
+        <button class="modal-close" type="button" aria-label="关闭" data-close-modal>×</button>
+        <p class="section-kicker">联系方式</p>
+          <h2 id="contact-modal-title">AI 产品经理机会沟通</h2>
+          <p>
+          目标方向：LLM 应用产品、RAG/Agent、AI 医疗、政务数字化、B 端智能化和 AIGC 工具。
+          可以直接把 JD、团队方向或面试邀约发到邮箱。
+        </p>
+        <div class="modal-metrics">
+          <div>
+            <span>邮箱</span>
+            <strong>1836883018@qq.com</strong>
+          </div>
+          <div>
+            <span>电话</span>
+            <strong>182 6217 9881</strong>
+          </div>
+          <div>
+            <span>网站</span>
+            <strong>liyanai.com</strong>
+          </div>
+        </div>
+        <div class="modal-actions">
+          <a class="primary-cta" href="mailto:1836883018@qq.com">
+            发送邮件
+            <span aria-hidden="true">→</span>
+          </a>
+          <button class="ghost-cta" type="button" data-close-modal>关闭</button>
+        </div>
+      </section>
+    </div>
+
+    <section class="ai-version-widget" id="ai-version-widget" aria-label="AI 版我问答助手">
+      <button class="ai-version-toggle" type="button" aria-label="打开 AI 版我" aria-expanded="false">
+        <span class="robot-bot ai-toggle-bot" aria-hidden="true">
+          <span class="robot-antenna"></span>
+          <span class="robot-head">
+            <i></i>
+            <i></i>
+          </span>
+          <span class="robot-body"></span>
+        </span>
+      </button>
+      <div class="ai-version-panel" aria-hidden="true">
+        <div class="ai-version-header">
+          <div class="ai-version-avatar" aria-hidden="true">
+            <span class="robot-bot ai-panel-bot">
+              <span class="robot-antenna"></span>
+              <span class="robot-head">
+                <i></i>
+                <i></i>
+              </span>
+              <span class="robot-body"></span>
+            </span>
+          </div>
+          <div>
+            <h2>AI 版我</h2>
+            <p><span></span> 在线 · 随时回答关于我的问题</p>
+          </div>
+          <button class="ai-version-close" type="button" aria-label="关闭 AI 版我">×</button>
+        </div>
+        <div class="ai-version-messages" id="ai-version-messages" aria-live="polite">
+          <div class="ai-message bot">
+            <p>嗨！我是这位产品经理的 AI 分身。你可以问我关于她的工作经历、擅长的领域、做过的案例，或者直接问“你适合我们团队吗”这类问题。</p>
+            <time>刚刚</time>
+          </div>
+        </div>
+        <div class="ai-version-quick" aria-label="快捷问题">
+          <button type="button" data-ai-chat-q="strength">最擅长什么</button>
+          <button type="button" data-ai-chat-q="hardcase">最难的案例</button>
+          <button type="button" data-ai-chat-q="method">设计方法论</button>
+          <button type="button" data-ai-chat-q="startup">适合创业公司吗</button>
+        </div>
+        <form class="ai-version-form" id="ai-version-form">
+          <input id="ai-version-input" type="text" autocomplete="off" placeholder="问我任何关于这位产品经理的问题..." />
+          <button type="submit" aria-label="发送问题">
+            <span aria-hidden="true">➤</span>
+          </button>
+        </form>
+      </div>
     </section>
-  </main>
 
-  <script src="./script.js?v=20260513-2055"></script>
-</body>
-
+    <script src="./script.js"></script>
+  </body>
 </html>

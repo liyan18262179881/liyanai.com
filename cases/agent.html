@@ -1,0 +1,141 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Case 01 · AI 传染病调查系统</title>
+    <meta name="description" content="李艳 AI 产品经理作品集案例：AI 传染病调查系统的对话引擎、信息抽取、评估体系和合规落地。" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="detail-page">
+    <canvas id="particle-field" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="../index.html#top" aria-label="返回首页">
+        <span class="brand-mark">李</span>
+        <span>
+          <strong>李艳 · AI 产品经理</strong>
+          <small>大模型 · 检索增强 · AI 工作流</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="主导航">
+        <a href="../index.html#profile">个人优势</a>
+        <a href="../index.html#work">项目作品</a>
+        <a href="../index.html#writing">我的文章</a>
+        <a href="../index.html#interest">个人兴趣</a>
+        <a href="../index.html#contact">与我联系</a>
+      </nav>
+      <a class="availability" href="mailto:1836883018@qq.com">
+        <span></span>
+        开放求职机会
+      </a>
+    </header>
+
+    <main>
+      <section class="detail-hero">
+        <div class="detail-hero-inner reveal">
+          <div class="detail-meta">
+            <span>案例 01</span>
+            <span>大模型应用</span>
+            <span>公共卫生</span>
+          </div>
+          <h1>AI 传染病调查系统</h1>
+          <p>
+            为疾控一线调查人员设计 AI 传染病调查系统，把语音访谈、结构化采集、传播链溯源和质量评估压进同一套可交付流程。
+          </p>
+        </div>
+      </section>
+
+      <section class="detail-shell">
+        <aside class="detail-side reveal">
+          <div>
+            <span>结果</span>
+            <strong>单次流调 90 分钟 → 40 分钟，效率提升 50%</strong>
+          </div>
+          <div>
+            <span>我的角色</span>
+            <strong>需求调研、AI 对话引擎、技术选型、评估体系、PMO 推进</strong>
+          </div>
+          <div>
+            <span>面试亮点</span>
+            <strong>把一线模糊痛点拆成可评估、可合规、可上线的 AI 系统</strong>
+          </div>
+        </aside>
+
+        <div class="detail-content">
+          <article class="detail-section reveal">
+            <p class="section-kicker">产品问题</p>
+            <h2>一线流调不是缺问卷，是缺少低负担的结构化采集</h2>
+            <p>
+              传统流调依赖人工问询、手动记录和后续整理，现场信息采集效率低、数据标准化程度差，多部门协同困难。
+              这个项目的关键不是让 AI “多说话”，而是让 AI 在合规约束下稳定辅助调查人员完成高质量采集。
+            </p>
+          </article>
+
+          <article class="detail-section reveal">
+            <p class="section-kicker">产品决策</p>
+            <h2>用多轮状态机和评估闭环约束 AI 能力</h2>
+            <ul>
+              <li>通过现场跟访和深度访谈，把“效率低”拆解成认知负载、对话结构、工具适配三层根因。</li>
+              <li>设计 Prompt 四层架构：角色层、流程层、约束层、Few-shot 层，将标准流调问卷隐式编码进对话逻辑。</li>
+              <li>与算法团队确定私有化技术栈：Whisper 本地部署、Qwen2-72B、MacBERT NER + LLM 校验、BGE + Milvus、Neo4j。</li>
+              <li>构建 500+ 条脱敏标注评估集，形成低分样本回捞、专家标注、两周迭代、灰度放量的优化闭环。</li>
+            </ul>
+          </article>
+
+          <article class="detail-section reveal">
+            <p class="section-kicker">指标结果</p>
+            <h2>用效率、完整率和一线采用度衡量产品价值</h2>
+            <div class="detail-grid">
+              <div>
+                <span>北极星指标</span>
+                <strong>单次流调完成效率</strong>
+              </div>
+              <div>
+                <span>质量</span>
+                <strong>信息采集完整率 60% → 85%</strong>
+              </div>
+              <div>
+                <span>规模</span>
+                <strong>落地 3 个省级疾控部门，支撑 2000+ 次任务</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="detail-section reveal">
+            <p class="section-kicker">项目展示</p>
+            <h2>项目页面展示：AI 传染病调查系统</h2>
+            <p>
+              这个展示页呈现了流调工作台、AI 流调对话、传播链分析和报告生成四个核心界面，
+              用来说明产品如何从一线问询进入结构化采集、链路分析和报告提交。
+            </p>
+            <div class="demo-frame-shell">
+              <div class="demo-frame-top">
+                <span></span><span></span><span></span>
+                <strong>demos/ai-liudiao.html</strong>
+              </div>
+              <iframe class="demo-frame" src="../demos/ai-liudiao.html" title="AI 传染病调查系统页面展示"></iframe>
+            </div>
+            <div class="demo-actions">
+              <a class="primary-cta mini-cta" href="../demos/ai-liudiao.html" target="_blank" rel="noreferrer">
+                打开展示
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </article>
+
+          <div class="detail-nav">
+            <a class="ghost-cta" href="../index.html#work">返回项目列表</a>
+            <a class="primary-cta" href="./rag.html">
+              下一个案例
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="../script.js"></script>
+  </body>
+</html>

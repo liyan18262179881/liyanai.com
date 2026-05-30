@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Case 02 · AI 电子胸牌系统</title>
+    <meta name="description" content="李艳 AI 产品经理作品集案例：AI 电子胸牌系统的 Agent App 设计、任务管理、一键救援与应急演练验证。" />
+    <link rel="stylesheet" href="../styles.css" />
+  </head>
+  <body class="detail-page">
+    <canvas id="particle-field" aria-hidden="true"></canvas>
+    <div class="grain" aria-hidden="true"></div>
+
+    <header class="site-header">
+      <a class="brand" href="../index.html#top" aria-label="返回首页">
+        <span class="brand-mark">李</span>
+        <span>
+          <strong>李艳 · AI 产品经理</strong>
+          <small>大模型 · 检索增强 · AI 工作流</small>
+        </span>
+      </a>
+      <nav class="main-nav" aria-label="主导航">
+        <a href="../index.html#profile">个人优势</a>
+        <a href="../index.html#work">项目作品</a>
+        <a href="../index.html#writing">我的文章</a>
+        <a href="../index.html#interest">个人兴趣</a>
+        <a href="../index.html#contact">与我联系</a>
+      </nav>
+      <a class="availability" href="mailto:1836883018@qq.com">
+        <span></span>
+        开放求职机会
+      </a>
+    </header>
+
+    <main>
+      <section class="detail-hero">
+        <div class="detail-hero-inner reveal">
+          <div class="detail-meta">
+            <span>案例 02</span>
+            <span>Agent App</span>
+            <span>应急救援</span>
+          </div>
+          <h1>AI 电子胸牌系统</h1>
+          <p>
+            面向应急演练前线救援人员，设计集动态身份展示、任务状态、AI 动态提醒与一键求援于一体的智能 Agent App，2 个月独立交付完整 PRD 与原型。
+          </p>
+        </div>
+      </section>
+
+      <section class="detail-shell">
+        <aside class="detail-side reveal">
+          <div>
+            <span>结果</span>
+            <strong>2 个月独立交付完整 PRD 与交互原型，通过 3 次应急演练实际验证</strong>
+          </div>
+          <div>
+            <span>我的角色</span>
+            <strong>需求分析、Agent 能力设计、交互流程设计、PRD 输出、项目统筹</strong>
+          </div>
+          <div>
+            <span>面试亮点</span>
+            <strong>把高压戴手套场景的 Agent 产品设计成大按钮、少输入、强反馈的可用系统</strong>
+          </div>
+        </aside>
+
+        <div class="detail-content">
+          <article class="detail-section reveal">
+            <p class="section-kicker">产品问题</p>
+            <h2>应急演练现场不缺工具，缺的是能在高压下真正用起来的 Agent</h2>
+            <p>
+              应急演练前线救援人员面临身份识别慢、任务不透明、异常响应滞后三大痛点。现场戴手套、高压、弱网等条件下，
+              普通 App 根本用不起来。产品核心挑战是：在极端使用条件下，设计前线人员真的会用、敢用的 Agent 产品。
+            </p>
+          </article>
+
+          <article class="detail-section reveal">
+            <p class="section-kicker">产品决策</p>
+            <h2>MVP 聚焦前线手机端，用 Agent 工具链串联核心流程</h2>
+            <ul>
+              <li>梳理前线人员在任务执行、状态上报、异常求援等场景的核心痛点，明确 MVP 聚焦前线手机端，不建设后端指挥端。</li>
+              <li>设计 Agent App MVP 信息架构，规划动态身份卡、当前任务、当前位置、状态上报、SOP 查询和一键救援六大核心模块。</li>
+              <li>定义 Agent 作为“个人任务与安全助手”产品定位，设计任务获取、SOP 查询、状态上报、请求救援等工具调用链路。</li>
+              <li>针对高压、戴手套、低输入场景，设计大按钮、少输入、强反馈的操作方式，完善任务查看、状态上报和一键求援流程。</li>
+            </ul>
+          </article>
+
+          <article class="detail-section reveal">
+            <p class="section-kicker">指标结果</p>
+            <h2>用演练覆盖、核心流程稳定性和交付完整度衡量产品价值</h2>
+            <div class="detail-grid">
+              <div>
+                <span>北极星指标</span>
+                <strong>弱网环境下核心流程完整可用</strong>
+              </div>
+              <div>
+                <span>规模验证</span>
+                <strong>3 次应急演练，覆盖 6 支救援队伍、60 台设备</strong>
+              </div>
+              <div>
+                <span>交付完整度</span>
+                <strong>独立输出完整 PRD，覆盖 P0/P1/P2 功能分级与验收指标</strong>
+              </div>
+            </div>
+          </article>
+
+          <article class="detail-section reveal">
+            <p class="section-kicker">项目展示</p>
+            <h2>项目页面展示：AI 电子胸牌系统</h2>
+            <p>
+              这个展示页呈现了 AI 电子胸牌系统的交互原型评审页，涵盖动态身份展示、任务状态、GPS 感知、AI 动态提醒与一键救援等核心模块的完整交互流程。
+            </p>
+            <div class="demo-frame-shell">
+              <div class="demo-frame-top">
+                <span></span><span></span><span></span>
+                <strong>demos/ai-badge.html</strong>
+              </div>
+              <iframe class="demo-frame" src="../demos/ai-badge.html" title="AI 电子胸牌系统交互原型评审页"></iframe>
+            </div>
+            <div class="demo-actions">
+              <a class="primary-cta mini-cta" href="../demos/ai-badge.html" target="_blank" rel="noreferrer">
+                打开展示
+                <span aria-hidden="true">→</span>
+              </a>
+            </div>
+          </article>
+
+          <div class="detail-nav">
+            <a class="ghost-cta" href="./agent.html">上一个案例</a>
+            <a class="primary-cta" href="./growth.html">
+              下一个案例
+              <span aria-hidden="true">→</span>
+            </a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <script src="../script.js"></script>
+  </body>
+</html>
