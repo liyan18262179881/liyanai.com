@@ -1,0 +1,1155 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 智能检伤系统 · 综合评审页 · MVP</title>
+<script src="https://cdn.tailwindcss.com"></script>
+<style>
+  :root { --bg: #eef2ec; --ink: #1a3d16; --muted: #6b8a68; --accent: #2d5a27; --cream: #f5f0e8; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: #1a1a1a; margin: 0; }
+
+  /* 三栏外壳 */
+  .review-shell { display: grid; grid-template-columns: 320px 470px 1fr; gap: 24px; padding: 24px; min-height: 100vh; align-items: start; }
+
+  /* 左栏：控制台 */
+  .switch-panel { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; background: rgba(255,255,255,0.9); backdrop-filter: blur(8px); border-radius: 24px; box-shadow: 0 8px 32px rgba(26,61,22,0.10); padding: 20px; }
+  .switch-panel h1 { font-size: 16px; font-weight: 700; margin: 0; color: var(--ink); }
+  .switch-panel .sub { font-size: 12px; color: var(--muted); }
+  .group { margin-top: 16px; }
+  .group-title { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .chip-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; }
+  .chip { padding: 8px 4px; font-size: 12px; text-align: center; background: #fff; border: 1px solid #d8ecd8; border-radius: 10px; cursor: pointer; transition: all 0.15s; color: #1a1a1a; }
+  .chip:hover { border-color: var(--accent); }
+  .chip.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .seg { display: flex; gap: 4px; background: #d8ecd8; padding: 4px; border-radius: 10px; }
+  .seg button { flex: 1; padding: 6px 8px; font-size: 12px; border-radius: 8px; cursor: pointer; border: none; background: transparent; font-family: inherit; color: #1a1a1a; }
+  .seg button.active { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); color: var(--ink); font-weight: 600; }
+  select.console-sel { width: 100%; padding: 8px 10px; font-size: 12px; background: #fff; border: 1px solid #d8ecd8; border-radius: 10px; font-family: inherit; color: #1a1a1a; }
+  .apply-btn { width: 100%; margin-top: 18px; padding: 11px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 600; border-radius: 12px; cursor: pointer; border: none; font-family: inherit; }
+  .console-note { margin-top: 12px; padding: 10px; background: rgba(45,90,39,0.08); border-left: 3px solid var(--accent); border-radius: 6px; font-size: 11px; color: #2d5a27; line-height: 1.5; }
+
+  /* 中栏：手机原型 */
+  .phone-panel { position: sticky; top: 24px; max-height: calc(100vh - 48px); display: flex; align-items: center; justify-content: center; }
+  .phone { width: 390px; height: 844px; background: #1a1a1a; border-radius: 50px; padding: 12px; box-shadow: 0 24px 64px rgba(0,0,0,0.20); position: relative; }
+  .phone::before { content: ""; position: absolute; top: 22px; left: 50%; transform: translateX(-50%); width: 120px; height: 32px; background: #1a1a1a; border-radius: 18px; z-index: 30; }
+  .screen { width: 100%; height: 100%; background: #f5f0e8; border-radius: 38px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+  .status-bar { height: 44px; padding: 14px 28px 0 28px; display: flex; justify-content: space-between; font-size: 14px; font-weight: 600; color: #1a1a1a; flex-shrink: 0; background: #f5f0e8; }
+  .nav-bar { padding: 8px 16px; display: flex; align-items: center; gap: 8px; border-bottom: 1px solid #e0dbd0; flex-shrink: 0; background: #f5f0e8; }
+  .nav-back { font-size: 22px; cursor: pointer; padding: 4px 8px; color: #2d5a27; }
+  .nav-title { font-size: 16px; font-weight: 600; flex: 1; color: #1a1a1a; }
+  .body-scroll { flex: 1; overflow-y: auto; padding: 16px; background: #f5f0e8; }
+  .home-indicator { width: 134px; height: 5px; background: #1a1a1a; border-radius: 3px; margin: 8px auto; opacity: 0.25; flex-shrink: 0; }
+  .tab-bar-phone { display: flex; border-top: 1px solid #e0dbd0; background: #f5f0e8; padding: 6px 0 3px; flex-shrink: 0; }
+  .tab-item { flex: 1; text-align: center; font-size: 10px; color: #aaa; cursor: pointer; }
+  .tab-item.on { color: #2d5a27; font-weight: 700; }
+  .tab-icon { font-size: 19px; display: block; margin-bottom: 1px; }
+
+  .card { background: #fff; border: 1px solid #e8e3d8; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .card-cream { background: #ede8df; border-radius: 14px; padding: 14px; margin-bottom: 10px; }
+  .card-title { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .badge { display: inline-block; padding: 2px 8px; font-size: 10px; border-radius: 999px; font-weight: 600; }
+  .badge-ai { background: #d8ecd8; color: #1a4a1a; }
+  .badge-warn { background: #fff3d4; color: #b07a14; }
+  .badge-error { background: #ffe1e1; color: #c92929; }
+  .badge-ok { background: #d8ecd8; color: #2a7a3e; }
+  .badge-gray { background: #f0ebe0; color: #5a5a4a; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: #5a4a2a; margin-bottom: 4px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 9px 10px; font-size: 13px; border: 1px solid #e0dbd0; border-radius: 10px; background: #fff; font-family: inherit; color: #1a1a1a; }
+  .field input.error, .field textarea.error { border-color: #ef4444; background: #fff5f5; }
+  .field-hint { font-size: 11px; color: #ef4444; margin-top: 4px; }
+  .pill-grid { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px; }
+  .pill { padding: 10px 8px; font-size: 12px; text-align: center; border: 1px solid #e0dbd0; border-radius: 10px; background: #fff; cursor: pointer; color: #1a1a1a; }
+  .pill.active { background: var(--ink); color: #fff; border-color: var(--ink); }
+  .primary-btn { width: 100%; padding: 12px; background: var(--ink); color: #fff; font-size: 14px; font-weight: 600; border-radius: 12px; cursor: pointer; border: none; font-family: inherit; }
+  .secondary-btn { padding: 8px 12px; background: #f0ebe0; color: var(--ink); font-size: 12px; border-radius: 8px; cursor: pointer; border: none; font-family: inherit; }
+  .skeleton { background: linear-gradient(90deg, #e8e3d8 0%, #f5f0e8 50%, #e8e3d8 100%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .empty-state { text-align: center; padding: 48px 24px; color: var(--muted); }
+  .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
+  .error-banner { background: #fff5f5; border: 1px solid #ffd0d0; color: #c92929; padding: 12px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; }
+  .toast { position: absolute; bottom: 60px; left: 50%; transform: translateX(-50%); background: rgba(26,61,22,0.92); color: #fff; padding: 10px 16px; border-radius: 12px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.2s; max-width: 300px; text-align: center; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+  .modal-mask { position: absolute; inset: 0; background: rgba(0,0,0,0.4); display: flex; align-items: flex-end; z-index: 50; }
+  .modal { width: 100%; background: #fff; border-radius: 18px 18px 0 0; padding: 18px; max-height: 80%; overflow-y: auto; }
+  .modal h3 { font-size: 15px; font-weight: 700; margin-bottom: 12px; margin-top: 0; }
+  .vital-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 10px; }
+  .vital-box { background: #f5f0e8; border-radius: 10px; padding: 8px 10px; }
+  .vital-lbl { font-size: 10px; color: #8b7e6b; }
+  .vital-val { font-size: 13px; font-weight: 700; color: #1a1a1a; margin-top: 2px; }
+  .grade-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-bottom: 10px; }
+  .gc { border-radius: 14px; padding: 12px; position: relative; cursor: pointer; }
+  .gc .arrow { position: absolute; top: 9px; right: 9px; width: 20px; height: 20px; border-radius: 50%; background: rgba(255,255,255,0.35); display: flex; align-items: center; justify-content: center; font-size: 10px; }
+  .gc .num { font-size: 28px; font-weight: 700; line-height: 1; }
+  .gc .lbl { font-size: 10px; font-weight: 700; margin-bottom: 5px; opacity: 0.8; }
+  .gc-red { background: #f5d5d5; color: #7a1a1a; }
+  .gc-yellow { background: #f5e8c8; color: #5a3a00; }
+  .gc-green { background: #d8ecd8; color: #1a4a1a; }
+  .gc-black { background: #2a2a2a; color: #f5f0e8; }
+  .ai-box { background: #1a3d16; border-radius: 14px; padding: 11px 13px; margin: 8px 0; }
+  .ai-top { font-size: 9px; font-weight: 700; color: #a8d4a0; margin-bottom: 5px; }
+  .rag-box { background: #d8ecd8; border-radius: 12px; padding: 9px 11px; margin: 7px 0; }
+  .rag-lbl { font-size: 10px; font-weight: 700; color: #1a4a1a; margin-bottom: 4px; }
+  .rag-txt { font-size: 11px; color: #2d5a27; line-height: 1.5; }
+  .soap-card { background: #fff; border-radius: 12px; padding: 10px 12px; margin-bottom: 6px; }
+  .soap-lbl { font-size: 9px; font-weight: 700; color: #8b7e6b; margin-bottom: 3px; letter-spacing: .3px; }
+  .soap-txt { font-size: 11px; color: #1a1a1a; line-height: 1.5; }
+  .voice-area { background: #fff; border-radius: 16px; padding: 20px 13px 18px; text-align: center; margin: 8px 0; }
+  .voice-btn { width: 72px; height: 72px; background: #2d5a27; border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 10px; cursor: pointer; border: none; font-size: 30px; }
+  .voice-hint { font-size: 13px; color: #8b7e6b; }
+  .transcript { background: #ede8df; border-radius: 10px; padding: 8px 10px; font-size: 11px; color: #3a3a2a; line-height: 1.5; margin-bottom: 8px; min-height: 34px; }
+  .chip-row { display: flex; gap: 5px; flex-wrap: wrap; margin-bottom: 8px; }
+  .sm-chip { display: inline-flex; align-items: center; border-radius: 20px; padding: 3px 9px; font-size: 10px; font-weight: 500; background: #ede8df; color: #5a5a4a; }
+  .action-row { display: grid; grid-template-columns: 1fr 1fr; gap: 7px; margin-top: 8px; }
+  .btn-sec { background: #ede8df; color: #2d5a27; border: none; border-radius: 12px; padding: 10px 14px; font-size: 12px; font-weight: 600; cursor: pointer; flex: 1; font-family: inherit; }
+  .inprogress-item { display: flex; justify-content: space-between; align-items: center; padding: 8px 0; border-bottom: .5px solid #ede8df; cursor: pointer; }
+  .inprogress-item:last-child { border-bottom: none; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; display: inline-block; margin-right: 6px; flex-shrink: 0; }
+  .dot-red { background: #c0392b; } .dot-yellow { background: #d4a017; } .dot-green { background: #27ae60; }
+  .chart-bar-row { display: flex; gap: 2px; align-items: flex-end; height: 34px; }
+  .bar { flex: 1; background: #2d5a27; border-radius: 2px 2px 0 0; opacity: .2; min-width: 6px; }
+  .bar.hi { opacity: 1; }
+
+  /* 右栏：PRD 文档 */
+  .doc-panel { display: grid; grid-template-columns: 1fr 220px; gap: 24px; max-width: 1100px; }
+  .doc-content { background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(26,61,22,0.07); padding: 36px 44px; min-width: 0; }
+  .doc-header { border-bottom: 1px solid #e8e3d8; padding-bottom: 20px; margin-bottom: 24px; }
+  .doc-header .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .doc-header h1 { font-size: 28px; font-weight: 700; margin: 0 0 8px; color: #1a1a1a; }
+  .doc-header .desc { color: #5a4a2a; font-size: 14px; line-height: 1.7; }
+  .doc-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; font-size: 12px; color: var(--muted); margin-top: 16px; }
+  .doc-meta div b { color: #1a1a1a; font-weight: 600; }
+  .doc-content h2 { font-size: 20px; font-weight: 700; margin: 32px 0 16px; padding-bottom: 8px; border-bottom: 2px solid #e8e3d8; color: #1a1a1a; }
+  .doc-content h3 { font-size: 16px; font-weight: 600; margin: 24px 0 12px; color: #2d5a27; }
+  .doc-content h4 { font-size: 14px; font-weight: 600; margin: 16px 0 8px; color: #1a3d16; }
+  .doc-content p { font-size: 14px; line-height: 1.8; color: #3a2f1e; margin: 12px 0; }
+  .doc-content ul, .doc-content ol { font-size: 14px; line-height: 1.8; color: #3a2f1e; padding-left: 24px; }
+  .doc-content table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 13px; }
+  .doc-content table th, .doc-content table td { border: 1px solid #e8e3d8; padding: 10px 12px; text-align: left; vertical-align: top; }
+  .doc-content table th { background: #f5f0e8; font-weight: 600; color: #1a3d16; }
+  .doc-content blockquote { border-left: 3px solid var(--accent); padding: 4px 16px; color: #5a4a2a; background: rgba(45,90,39,0.05); border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; }
+  .doc-content code { background: #f5f0e8; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'SF Mono', monospace; }
+  .doc-content .callout { background: #f0fdf4; border: 1px solid #b8e6c9; padding: 12px 16px; border-radius: 10px; margin: 16px 0; font-size: 13px; color: #1a4a1a; line-height: 1.7; }
+  .doc-content .callout.warn { background: #fff5f5; border-color: #ffd0d0; color: #c92929; }
+  .doc-content .callout.info { background: #fff8e7; border-color: #e8d6a8; color: #7a5a14; }
+  .doc-content .pending { background: #fff3d4; color: #b07a14; padding: 1px 6px; border-radius: 4px; font-size: 12px; font-weight: 600; }
+  .doc-content .checklist { list-style: none; padding-left: 0; }
+  .doc-content .checklist li { padding-left: 26px; position: relative; margin: 6px 0; font-size: 13px; color: #3a2f1e; }
+  .doc-content .checklist li::before { content: "☑"; position: absolute; left: 0; color: #2a7a3e; font-weight: 700; }
+  .doc-content .checklist li.unchecked::before { content: "☐"; color: var(--muted); }
+
+  /* TOC */
+  .doc-toc { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; background: rgba(255,255,255,0.88); backdrop-filter: blur(8px); border-radius: 16px; padding: 18px; align-self: start; }
+  .doc-toc h4 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; }
+  .doc-toc ol { padding-left: 0; list-style: none; margin: 0; }
+  .doc-toc li { margin: 4px 0; }
+  .doc-toc a { display: block; padding: 6px 10px; font-size: 12px; color: #5a4a2a; text-decoration: none; border-radius: 6px; line-height: 1.4; }
+  .doc-toc a:hover { background: rgba(45,90,39,0.08); color: var(--ink); }
+  .doc-toc a.l2 { padding-left: 22px; font-size: 11px; color: var(--muted); }
+
+  @media (max-width: 1400px) { .review-shell { grid-template-columns: 300px 430px 1fr; } .doc-panel { grid-template-columns: 1fr 200px; } }
+  @media (max-width: 1200px) { .review-shell { grid-template-columns: 1fr; } .switch-panel, .phone-panel, .doc-toc { position: relative; top: 0; max-height: none; } .doc-panel { grid-template-columns: 1fr; } }
+</style>
+</head>
+<body>
+
+<main class="review-shell">
+
+  <!-- 左栏：控制台 -->
+  <aside class="switch-panel">
+    <h1>AI 智能检伤系统</h1>
+    <div class="sub">交互原型控制台 · MVP v1.0</div>
+    <div class="console-note" style="margin-top:10px;">左栏切换演示变量；中栏手机内点击操作主流程；右栏阅读 PRD 文档。</div>
+
+    <div class="group">
+      <div class="group-title">检伤方法</div>
+      <div class="chip-grid" id="ctrl-method">
+        <div class="chip active" data-v="start">START法</div>
+        <div class="chip" data-v="salt">SALT法</div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">伤员等级</div>
+      <div class="chip-grid" id="ctrl-grade">
+        <div class="chip" data-v="red">红色·危重</div>
+        <div class="chip" data-v="yellow">黄色·重伤</div>
+        <div class="chip" data-v="green">绿色·轻伤</div>
+        <div class="chip" data-v="black">黑色·死亡</div>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">用户角色</div>
+      <div class="seg" id="ctrl-role">
+        <button data-v="medic" class="active">随车医护</button>
+        <button data-v="supervisor">队组长</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">网络状态</div>
+      <div class="seg" id="ctrl-network">
+        <button data-v="online" class="active">正常</button>
+        <button data-v="weak">弱网</button>
+        <button data-v="offline">断网</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">异常态（四态）</div>
+      <div class="seg" id="ctrl-state">
+        <button data-v="normal" class="active">正常</button>
+        <button data-v="loading">加载</button>
+        <button data-v="empty">空</button>
+        <button data-v="error">失败</button>
+      </div>
+    </div>
+
+    <div class="group">
+      <div class="group-title">快速定位</div>
+      <select class="console-sel" id="ctrl-jump">
+        <option value="">— 跳到指定页 —</option>
+        <option value="home">待命主页</option>
+        <option value="scan">扫描腕带</option>
+        <option value="assess">现场评估</option>
+        <option value="soap">病历记录</option>
+        <option value="history">检伤记录</option>
+        <option value="done">归档完成</option>
+      </select>
+    </div>
+
+    <button class="apply-btn" id="apply-btn">应用到原型</button>
+
+    <div class="console-note">
+      ⓘ 切换「异常态」后，如当前在评估页，AI 分级块会立即反映对应状态。<br>
+      ⓘ 「网络状态 = 断网」时，主页会显示离线提示横幅。
+    </div>
+  </aside>
+
+  <!-- 中栏：iPhone 手机原型 -->
+  <section class="phone-panel">
+    <div class="phone">
+      <div class="screen" id="screen">
+        <div class="status-bar"><span>9:41</span><span>SH-EMS-002 🔋</span></div>
+        <div class="home-indicator"></div>
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 右栏：PRD 文档 + TOC -->
+  <article class="doc-panel">
+    <div class="doc-content">
+      <div class="doc-header">
+        <div class="pills">
+          <span class="badge badge-warn">Draft</span>
+          <span class="badge badge-ok">MVP</span>
+          <span class="badge" style="background:#d8ecd8;color:#1a4a1a;">V2.0</span>
+        </div>
+        <h1>AI 智能检伤系统</h1>
+        <div class="desc">院前急救现场 AI 智能检伤记录移动应用，帮助随车医护人员用语音替代手写、AI 辅助分级，全面取代纸质检伤表。MVP 阶段聚焦验证「AI 分级建议准确率 ≥ 85%、现场录入耗时下降 ≥ 50%」。</div>
+        <div class="doc-meta">
+          <div><b>产品阶段</b> · MVP 规划定稿</div>
+          <div><b>文档状态</b> · Draft</div>
+          <div><b>目标平台</b> · iOS / Android 移动端 App</div>
+          <div><b>端数</b> · 单端（救护车端）</div>
+          <div><b>立项日期</b> · 2026-05</div>
+          <div><b>预期可演示</b> · 2026-07（第10周）</div>
+        </div>
+      </div>
+
+      <h2 id="ch1">第 1 章 · 文档信息</h2>
+      <h3>1.1 版本记录</h3>
+      <table>
+        <thead><tr><th>版本</th><th>日期</th><th>修改说明</th></tr></thead>
+        <tbody>
+          <tr><td>v1.0</td><td>2026-05</td><td>初版，覆盖现场评估 + 决策支持 + 转运路线</td></tr>
+          <tr><td>v2.0</td><td>2026-05</td><td>精简范围：移除转运路线；细化体征双层提取逻辑；补充 SALT 法说明；明确 MVP 功能优先级</td></tr>
+        </tbody>
+      </table>
+      <h3>1.2 关联交付物</h3>
+      <table>
+        <thead><tr><th>交付物</th><th>说明</th><th>状态</th></tr></thead>
+        <tbody>
+          <tr><td>交互原型（本文件）</td><td>可点击的综合评审页</td><td>✅ 已完成</td></tr>
+          <tr><td>PRD 文档（Word）</td><td>检伤助手_MVP_PRD_v2.0.docx</td><td>✅ 已完成</td></tr>
+          <tr><td>技术架构图</td><td>AI 模型选型 + 数据流</td><td>✅ 已完成</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="ch2">第 2 章 · 为什么做</h2>
+      <h3>2.1 市场背景与现状问题</h3>
+      <p>国内院前急救现场长期依赖纸质检伤表，存在以下反复出现的核心痛点：</p>
+      <ul>
+        <li>双手被占用，无法手写记录；纸质表格易丢失、难追溯</li>
+        <li>不同医护人员对同一伤情的分级存在主观差异，标准不统一</li>
+        <li>急救指南和药物禁忌查询不便，影响处置质量</li>
+        <li>纸质记录无法用于机构管理、质量分析和事后复盘</li>
+      </ul>
+      <h3>2.2 核心痛点</h3>
+      <div class="callout warn">现场医护双手被占用无法记录，且分级依赖个人经验，同一伤情判断结果因人而异。</div>
+      <h3>2.3 业务目标（MVP · 验证型）</h3>
+      <ol>
+        <li>验证生成质量：AI 分级建议准确率（与专家判断一致）≥ <b>85%</b></li>
+        <li>验证效率提升：现场录入耗时（扫码→提交）下降 ≥ <b>50%</b></li>
+        <li>验证使用意愿：试点机构医护 2 周内主动使用率 ≥ <b>80%</b></li>
+      </ol>
+      <h3>2.4 成功指标</h3>
+      <table>
+        <thead><tr><th>指标名</th><th>类型</th><th>当前值</th><th>目标值</th><th>测量周期</th></tr></thead>
+        <tbody>
+          <tr><td>AI 分级准确率</td><td>质量</td><td>—</td><td>≥ 85%</td><td>周</td></tr>
+          <tr><td>单次录入耗时</td><td>效率</td><td>~15分钟（纸质）</td><td>≤ 7分钟</td><td>周</td></tr>
+          <tr><td>医护主动使用率</td><td>留存</td><td>—</td><td>≥ 80%</td><td>双周</td></tr>
+          <tr><td>AI 建议修改率</td><td>观察</td><td>—</td><td>观察值（用于优化）</td><td>月</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="ch3">第 3 章 · 做给谁</h2>
+      <h3>3.1 目标用户画像</h3>
+      <h4>主画像 · 随车急救医护</h4>
+      <table>
+        <tbody>
+          <tr><th>身份</th><td>随车急救医护人员，负责院前现场检伤分类与处置</td></tr>
+          <tr><th>规模</th><td>试点阶段 2-3 家急救中心，共 20-50 名医护</td></tr>
+          <tr><th>典型场景</th><td>到达事故现场后 5 分钟内完成多名伤员检伤分级</td></tr>
+          <tr><th>当前替代方案</th><td>纸质检伤卡 + 口头汇报，事后人工录入系统</td></tr>
+          <tr><th>致命问题</th><td>双手被占、纸质易丢、分级主观，事后无法追溯</td></tr>
+        </tbody>
+      </table>
+      <h4>次要画像 · 急救队组长</h4>
+      <p>2-3 人，统筹多伤员现场协调，查看全体伤员分级状态。</p>
+      <h4>排除画像</h4>
+      <ul>
+        <li><b>医院院内医护</b>：院内交接功能不在 MVP 范围</li>
+        <li><b>调度中心</b>：调度端大屏为二期功能</li>
+      </ul>
+
+      <h3>3.2 核心使用场景</h3>
+      <ul>
+        <li><b>场景 A</b> · 作为随车医护，我想用语音快速录入伤情，以便双手不离伤员完成检伤记录</li>
+        <li><b>场景 B</b> · 作为随车医护，我想让 AI 根据体征给出分级建议，以便减少主观判断误差</li>
+        <li><b>场景 C</b> · 作为随车医护，我想实时查到急救指南和药物禁忌，以便提升处置质量</li>
+        <li><b>场景 D</b> · 作为队组长，我想实时看到所有伤员的等级分布，以便协调处置优先级</li>
+        <li><b>场景 E</b> · 作为机构管理员，我想查看历史检伤记录，以便数据分析和质量管理</li>
+      </ul>
+
+      <h2 id="ch4">第 4 章 · 做什么</h2>
+      <h3>4.1 一句话定位</h3>
+      <div class="callout">AI 智能检伤系统是一款面向院前急救场景的 AI 辅助检伤记录移动应用，帮助随车医护人员用语音替代手写、AI 辅助分级，全面取代纸质检伤表，数据可追溯。</div>
+
+      <h3>4.2 功能清单</h3>
+      <h4>P0 · 核心必须有</h4>
+      <table>
+        <thead><tr><th>功能模块</th><th>一句话说明</th><th>AI 技术</th></tr></thead>
+        <tbody>
+          <tr><td>登录认证</td><td>机构代码 + 工号 + 生物识别</td><td>无</td></tr>
+          <tr><td>扫描二维码</td><td>扫腕带创建检伤记录</td><td>无</td></tr>
+          <tr><td>语音录入</td><td>口述伤情，ASR 实时转写</td><td>讯飞医疗版 ASR</td></tr>
+          <tr><td>体征自动提取</td><td>双层提取：MacBERT NER + Qwen2.5-72B 校验</td><td>MacBERT + LLM</td></tr>
+          <tr><td>AI 分级建议</td><td>红/黄/绿/黑 + 判断依据，医护确认</td><td>Qwen2.5-72B + RAG</td></tr>
+          <tr><td>病历自动生成</td><td>SOAP 格式，语音内容自动填充</td><td>Qwen2.5-72B</td></tr>
+          <tr><td>草稿保存</td><td>离线本地存储，联网自动同步</td><td>无</td></tr>
+          <tr><td>提交归档</td><td>正式提交，时间戳三点记录</td><td>无</td></tr>
+        </tbody>
+      </table>
+      <h4>P1 · 首版包含可简化</h4>
+      <table>
+        <thead><tr><th>功能模块</th><th>一句话说明</th><th>AI 技术</th></tr></thead>
+        <tbody>
+          <tr><td>RAG 知识推送</td><td>实时推送急救指南和禁忌提示</td><td>LangChain + BGE + Milvus</td></tr>
+          <tr><td>检伤法记录</td><td>记录使用 START / SALT 法</td><td>无</td></tr>
+          <tr><td>检伤记录汇总</td><td>任务列表 + 等级分布统计</td><td>无</td></tr>
+        </tbody>
+      </table>
+
+      <h3>4.3 核心功能详述</h3>
+      <h4>4.3.1 语音录入 + 体征双层提取</h4>
+      <p><b>用户价值</b>：免手持操作，口述即可完成记录，双手不离伤员。</p>
+      <p><b>技术流程</b>：讯飞医疗版 ASR 实时转写 → MacBERT NER 毫秒级粗提取体征字段 → Qwen2.5-72B-Instruct 语义校验（处理「摸不太到脉搏→细弱」等口语歧义）→ 填入表单。</p>
+      <p><b>反例（非目标）</b>：不做自由对话式改写；所有提取字段均可手动修正；未提及字段显示「未记录」，不自动猜测。</p>
+      <h4>4.3.2 AI 分级建议</h4>
+      <p><b>用户价值</b>：减少主观判断误差，AI 建议有据可查，医护拥有最终决策权。</p>
+      <p><b>技术流程</b>：体征 JSON + 检伤法 → RAG 检索 START/SALT 规则（BGE 向量化 + Milvus 检索）→ Qwen2.5-72B-Instruct 推理 → 输出等级 + 判断依据（≤20字）。响应目标 &lt;3秒。</p>
+      <p><b>核心原则</b>：AI 只给建议，医护点击「确认」或「修改等级」后才生效。系统同时记录 ai_suggest 和 final_grade，用于后续模型优化。</p>
+      <h4>4.3.3 RAG 知识库推送</h4>
+      <p><b>用户价值</b>：实时提供处置建议和禁忌提示，提升现场处置质量。</p>
+      <p><b>技术流程</b>：LangChain 编排 → BGE 向量化查询 → Milvus 检索 top-2 条目 → 绿色卡片显示，可收起，不干扰主流程。</p>
+      <p><b>知识库初始内容</b>：START/SALT 规则、常见创伤急救指南、常用急救药物禁忌（20种），由医疗顾问审核后入库。</p>
+
+      <h2 id="ch5">第 5 章 · 怎么做（技术实现意图）</h2>
+      <h3>5.1 AI 模型选型总览</h3>
+      <table>
+        <thead><tr><th>层级</th><th>选型</th><th>用途</th><th>选型理由</th></tr></thead>
+        <tbody>
+          <tr><td>语音识别 ASR</td><td>讯飞医疗版</td><td>语音转写</td><td>医疗术语识别率高；抗噪能力强；国内合规</td></tr>
+          <tr><td>信息粗提取</td><td>MacBERT（NER）</td><td>体征实体识别</td><td>中文医疗语料预训练；毫秒级响应；速度快</td></tr>
+          <tr><td>语义校验 + 推理 + 生成</td><td>Qwen2.5-72B-Instruct</td><td>歧义消解 / 分级 / 病历</td><td>国产私有化；等保合规；指令跟随稳定</td></tr>
+          <tr><td>Embedding 向量化</td><td>BGE</td><td>知识库向量化</td><td>国内最强中文向量模型；完全开源</td></tr>
+          <tr><td>向量数据库</td><td>Milvus</td><td>知识检索</td><td>开源私有化部署；实时检索性能好</td></tr>
+          <tr><td>RAG 编排框架</td><td>LangChain</td><td>串联 AI 链路</td><td>生态最成熟；国产模型支持完善；上手快</td></tr>
+        </tbody>
+      </table>
+      <h3>5.2 AI 与规则的职责分工</h3>
+      <table>
+        <thead><tr><th>决策</th><th>由谁决定</th><th>为什么</th></tr></thead>
+        <tbody>
+          <tr><td>体征粗提取</td><td>MacBERT（规则 + 模型）</td><td>速度优先，毫秒级响应</td></tr>
+          <tr><td>口语歧义消解</td><td>Qwen2.5-72B（AI）</td><td>语义理解能力强，规则无法穷举口语表达</td></tr>
+          <tr><td>检伤分级建议</td><td>AI + RAG 规则约束</td><td>RAG 限制输出范围，AI 做推理，防幻觉</td></tr>
+          <tr><td>最终分级</td><td>医护人员（人工）</td><td>医疗决策不可完全交给 AI</td></tr>
+          <tr><td>SOAP 病历整理</td><td>AI（Qwen2.5-72B）</td><td>结构化输出，格式稳定</td></tr>
+          <tr><td>知识库检索匹配</td><td>BGE + Milvus（规则）</td><td>语义检索，确定性强</td></tr>
+        </tbody>
+      </table>
+      <h3>5.3 离线容灾方案</h3>
+      <table>
+        <thead><tr><th>网络状态</th><th>降级策略</th></tr></thead>
+        <tbody>
+          <tr><td>弱网（2G/3G）</td><td>ASR 降级本地轻量模型；LLM 使用缓存结果；RAG 使用本地缓存知识库</td></tr>
+          <tr><td>完全断网</td><td>ASR 本地模型；AI 分级不可用，提示手动选等级；草稿全部存本地 SQLite</td></tr>
+          <tr><td>AI 服务异常</td><td>显示「AI 暂不可用，请手动分级」；所有字段支持完全手动填写</td></tr>
+        </tbody>
+      </table>
+      <h3>5.4 技术栈总览</h3>
+      <table>
+        <tbody>
+          <tr><th>前端（移动端）</th><td>React Native（iOS + Android 一套代码）</td></tr>
+          <tr><th>后端 API</th><td>Python + FastAPI（LLM/RAG 生态最成熟）</td></tr>
+          <tr><th>结构化数据库</th><td>PostgreSQL（病历、任务、用户数据）</td></tr>
+          <tr><th>本地存储（离线）</th><td>SQLite（草稿离线存储）</td></tr>
+          <tr><th>缓存</th><td>Redis（会话状态、热点数据）</td></tr>
+          <tr><th>云部署</th><td>阿里云医疗合规区（等保三级）</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="ch6">第 6 章 · 不做什么</h2>
+      <h3>6.1 非目标清单</h3>
+      <table>
+        <thead><tr><th>事项</th><th>为什么</th><th>规划</th></tr></thead>
+        <tbody>
+          <tr><td>转运路线规划与医院推荐</td><td>依赖医院 HIS 接口，国内推进困难</td><td>二期</td></tr>
+          <tr><td>调度中心端大屏</td><td>依赖外部系统对接</td><td>二期</td></tr>
+          <tr><td>医院院内交接端</td><td>不在 MVP 验证范围</td><td>二期</td></tr>
+          <tr><td>伤情图片与视频上传</td><td>存储合规复杂；现场医护无暇拍摄</td><td>二期</td></tr>
+          <tr><td>多机构跨平台协调</td><td>接口复杂</td><td>三期</td></tr>
+          <tr><td>院内复盘与数据分析看板</td><td>不在一线医护使用场景</td><td>二期</td></tr>
+        </tbody>
+      </table>
+      <h3>6.2 显式排除场景</h3>
+      <ol>
+        <li>不支持「AI 直接决定分级并自动执行」，必须医护确认</li>
+        <li>不支持院内交接预通知推送（二期）</li>
+        <li>不支持多机构数据互通</li>
+        <li>不做自动上报政府系统（合规边界未明确）</li>
+      </ol>
+      <h3>6.3 未来规划摘要</h3>
+      <ul>
+        <li>转运路线规划 + 目标医院推荐 · 二期候选</li>
+        <li>调度中心端 + 医院接收端 · 二期候选</li>
+        <li>AI 模型微调（基于积累的真实检伤数据）· 二期候选</li>
+        <li>多机构协调 · 三期候选</li>
+      </ul>
+
+      <h2 id="ch7">第 7 章 · 合规与风险</h2>
+      <h3>7.1 法规与标准依据</h3>
+      <ul>
+        <li>网络安全等级保护 · 等保三级，患者信息本地化</li>
+        <li>《互联网信息服务深度合成管理规定》· AI 生成内容可追溯</li>
+        <li>医疗器械软件（SaMD）· MVP 定位为「信息记录工具」，规避二类注册</li>
+        <li>公司数据安全管理办法 · 患者数据不外泄、不出境</li>
+      </ul>
+      <h3>7.2 AI 特有风险</h3>
+      <table>
+        <thead><tr><th>风险</th><th>形态与防护</th></tr></thead>
+        <tbody>
+          <tr><td><b>幻觉</b></td><td>AI 可能给出与体征不符的分级。RAG 约束输出范围；医护必须手动确认；记录 ai_suggest vs final_grade</td></tr>
+          <tr><td><b>误判</b></td><td>MacBERT NER 提取错误。所有字段显示后由医护校对；Qwen 做第二层语义校验</td></tr>
+          <tr><td><b>过度依赖</b></td><td>医护跳过思考直接确认 AI 建议。UI 强调「AI 仅供参考」；记录修改率用于审计</td></tr>
+          <tr><td><b>隐私</b></td><td>患者信息通过 AI API 处理。所有 LLM 调用经后端代理，患者数据 AES-256 加密，不出境</td></tr>
+          <tr><td><b>可用性</b></td><td>AI 服务中断导致无法使用。离线容灾方案，核心流程支持全手动操作</td></tr>
+        </tbody>
+      </table>
+      <h3>7.3 责任边界声明</h3>
+      <ol>
+        <li>本工具产出为<b>辅助建议</b>，医护对最终检伤分级及处置决定负责</li>
+        <li>本工具不替代医疗专业判断，不具备诊断功能</li>
+        <li>本工具仅供授权机构内部医护使用，不对外开放</li>
+        <li>AI 生成建议可能存在错误，医护须逐条核对确认</li>
+      </ol>
+
+      <h2 id="ch8">第 8 章 · 下游转译输入</h2>
+      <h3>8.1 核心业务维度</h3>
+      <table>
+        <thead><tr><th>维度</th><th>可选值</th><th>用于控制台</th></tr></thead>
+        <tbody>
+          <tr><td>检伤方法</td><td>START法 / SALT法</td><td>是</td></tr>
+          <tr><td>伤员等级</td><td>红色 / 黄色 / 绿色 / 黑色</td><td>是</td></tr>
+          <tr><td>用户角色</td><td>随车医护 / 队组长</td><td>是</td></tr>
+          <tr><td>网络状态</td><td>正常 / 弱网 / 断网</td><td>是</td></tr>
+        </tbody>
+      </table>
+      <h3>8.2 关键状态语义</h3>
+      <table>
+        <thead><tr><th>状态</th><th>含义</th></tr></thead>
+        <tbody>
+          <tr><td>正常录入完成</td><td>体征提取完成，AI 分级建议呈现，等待医护确认</td></tr>
+          <tr><td>AI 处理中</td><td>骨架屏占位，目标 &lt;3秒</td></tr>
+          <tr><td>AI 不可用</td><td>显示提示，切换手动分级模式</td></tr>
+          <tr><td>断网</td><td>ASR 降级，草稿本地存储，功能降级提示</td></tr>
+          <tr><td>草稿状态</td><td>本地存储，橙色标签，联网后自动同步</td></tr>
+          <tr><td>已归档</td><td>记录锁定，绿色标签，不可删除</td></tr>
+        </tbody>
+      </table>
+      <h3>8.3 非功能性需求口径</h3>
+      <table>
+        <tbody>
+          <tr><th>ASR 转写延迟</th><td>&lt;2 秒（正常网络）</td></tr>
+          <tr><th>AI 分级响应</th><td>&lt;3 秒</td></tr>
+          <tr><th>扫码识别</th><td>&lt;1 秒</td></tr>
+          <tr><th>系统可用率</th><td>&gt;99.5%（月度）</td></tr>
+          <tr><th>数据加密</th><td>传输 TLS 1.3；存储 AES-256</td></tr>
+          <tr><th>兼容性</th><td>iOS 15+ / Android 10+</td></tr>
+        </tbody>
+      </table>
+
+      <h2 id="appendix-a">附录 A · 自查清单</h2>
+      <ul class="checklist">
+        <li>第 1-8 章全部章节已填</li>
+        <li>MVP 范围明确（单端救护车 App，12 个功能模块）</li>
+        <li>AI 模型选型完整（6 个模型，各有理由）</li>
+        <li>体征提取双层架构说明清晰</li>
+        <li>核心功能 3 个，每个有技术流程</li>
+        <li>AI 与规则分工明确</li>
+        <li>离线容灾三种场景均有降级方案</li>
+        <li>5 类 AI 风险均有防护描述</li>
+        <li>非目标清单已分类含规划周期</li>
+        <li class="unchecked">医疗顾问审核知识库内容（待执行）</li>
+        <li class="unchecked">法务审核责任边界声明（待执行）</li>
+      </ul>
+    </div>
+
+    <!-- TOC -->
+    <nav class="doc-toc">
+      <h4>目录</h4>
+      <ol>
+        <li><a href="#ch1">第 1 章 · 文档信息</a></li>
+        <li><a href="#ch2">第 2 章 · 为什么做</a></li>
+        <li><a href="#ch3">第 3 章 · 做给谁</a></li>
+        <li><a href="#ch4">第 4 章 · 做什么</a>
+          <ol>
+            <li><a href="#ch4" class="l2">4.1 一句话定位</a></li>
+            <li><a href="#ch4" class="l2">4.2 功能清单</a></li>
+            <li><a href="#ch4" class="l2">4.3 核心功能详述</a></li>
+          </ol>
+        </li>
+        <li><a href="#ch5">第 5 章 · 怎么做</a>
+          <ol>
+            <li><a href="#ch5" class="l2">5.1 AI 模型选型</a></li>
+            <li><a href="#ch5" class="l2">5.2 AI 与规则分工</a></li>
+            <li><a href="#ch5" class="l2">5.3 离线容灾</a></li>
+            <li><a href="#ch5" class="l2">5.4 技术栈总览</a></li>
+          </ol>
+        </li>
+        <li><a href="#ch6">第 6 章 · 不做什么</a></li>
+        <li><a href="#ch7">第 7 章 · 合规与风险</a></li>
+        <li><a href="#ch8">第 8 章 · 下游转译输入</a></li>
+        <li><a href="#appendix-a">附录 A · 自查清单</a></li>
+      </ol>
+    </nav>
+  </article>
+</main>
+
+<script>
+window.state = {
+  route: 'home', routeStack: ['home'],
+  method: 'start', grade: 'red', role: 'medic',
+  network: 'online', errState: 'normal',
+  myHistory: [
+    { id: 'PD-260524-005', grade: 'red', method: 'start', meta: '男·约40岁', time: '09:41', status: 'done' },
+    { id: 'PD-260524-004', grade: 'yellow', method: 'start', meta: '女·约28岁', time: '09:28', status: 'draft' },
+    { id: 'PD-260524-003', grade: 'green', method: 'salt', meta: '男·约19岁', time: '09:10', status: 'done' },
+  ],
+  voiceOn: false,
+  hasTranscript: false,
+  gradeFilter: 'all',
+  modal: null,
+};
+
+const GRADE_LABEL = { red:'红色·危重', yellow:'黄色·重伤', green:'绿色·轻伤', black:'黑色·死亡' };
+const GRADE_COLOR = { red:'#f5d5d5', yellow:'#f5e8c8', green:'#d8ecd8', black:'#2a2a2a' };
+const GRADE_TEXT = { red:'#7a1a1a', yellow:'#5a3a00', green:'#1a4a1a', black:'#f5f0e8' };
+const METHOD_LABEL = { start:'START法', salt:'SALT法' };
+const NET_LABEL = { online:'在线', weak:'弱网', offline:'离线' };
+
+function navigate(route) {
+  if (route !== state.route) state.routeStack.push(route);
+  state.route = route;
+  render();
+}
+function goBack() {
+  if (state.routeStack.length > 1) { state.routeStack.pop(); state.route = state.routeStack[state.routeStack.length-1]; render(); }
+  else showToast('已是首页');
+}
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text; t.classList.add('show');
+  setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function render() {
+  const screen = document.getElementById('screen');
+  const statusBar = screen.querySelector('.status-bar');
+  const homeInd = screen.querySelector('.home-indicator');
+  const toast = screen.querySelector('.toast');
+  screen.innerHTML = '';
+  screen.appendChild(statusBar);
+  const wrap = document.createElement('div');
+  wrap.style.cssText = 'flex:1;display:flex;flex-direction:column;min-height:0;';
+  wrap.innerHTML = renderRoute();
+  screen.appendChild(wrap);
+  screen.appendChild(homeInd);
+  screen.appendChild(toast);
+  if (state.modal) {
+    const mask = document.createElement('div');
+    mask.className = 'modal-mask';
+    mask.innerHTML = renderModal();
+    mask.addEventListener('click', e => { if(e.target===mask) { state.modal=null; render(); } });
+    screen.appendChild(mask);
+  }
+  bindPhoneEvents();
+}
+
+function renderRoute() {
+  switch(state.route) {
+    case 'home': return renderHome();
+    case 'scan': return renderScan();
+    case 'assess': return renderAssess();
+    case 'soap': return renderSoap();
+    case 'history': return renderHistory();
+    case 'done': return renderDone();
+    default: return renderHome();
+  }
+}
+
+function gradeBar() {
+  const g = state.grade || 'red';
+  return `<div style="display:inline-flex;align-items:center;gap:6px;background:${GRADE_COLOR[g]};color:${GRADE_TEXT[g]};border-radius:20px;padding:3px 10px;font-size:11px;font-weight:700;">● ${GRADE_LABEL[g]}</div>`;
+}
+
+function renderHome() {
+  const offline = state.network === 'offline';
+  const recent = state.myHistory.slice(0,3);
+  return `
+    <div class="nav-bar"><div class="nav-title">AI 智能检伤系统</div><div style="font-size:11px;color:#8b7e6b;">${state.role==='supervisor'?'队组长':'医护'} · ${NET_LABEL[state.network]}</div></div>
+    <div class="body-scroll">
+      ${offline ? `<div style="background:#fff3d4;border:1px solid #e8d6a8;padding:10px;border-radius:10px;margin-bottom:12px;font-size:12px;color:#7a5a14;">⚠️ 当前处于离线模式，草稿将存储在本地，联网后自动同步</div>` : ''}
+      <div style="background:linear-gradient(135deg,#1a3d16 0%,#2d5a27 100%);color:#fff;padding:18px;border-radius:16px;margin-bottom:12px;">
+        <div style="font-size:17px;font-weight:700;">你好，李医生 👋</div>
+        <div style="font-size:11px;opacity:0.8;margin-top:3px;">已就绪 · 待命中 · SH-EMS-002 二号救护车</div>
+        <button class="primary-btn" data-action="goto-scan" style="background:#fff;color:#1a3d16;margin-top:14px;">扫描伤员腕带</button>
+      </div>
+      <div class="card-cream" style="margin-bottom:10px;">
+        <div style="display:flex;justify-content:space-between;align-items:flex-end;margin-bottom:6px;">
+          <div><div style="font-size:10px;color:#8b7e6b;margin-bottom:2px;">今日检伤量</div>
+          <div style="font-size:26px;font-weight:700;">08 <span style="font-size:11px;font-weight:400;color:#8b7e6b;">/例</span></div></div>
+          <div class="chart-bar-row"><div class="bar" style="height:14px;"></div><div class="bar" style="height:20px;"></div><div class="bar" style="height:16px;"></div><div class="bar hi" style="height:30px;"></div><div class="bar" style="height:18px;"></div><div class="bar" style="height:22px;"></div></div>
+        </div>
+        <div style="display:flex;gap:14px;">
+          <div><div style="font-size:9px;color:#8b7e6b;">待处理</div><div style="font-size:13px;font-weight:700;">0 例</div></div>
+          <div><div style="font-size:9px;color:#8b7e6b;">危重数</div><div style="font-size:13px;font-weight:700;color:#c0392b;">2 红色</div></div>
+          <div><div style="font-size:9px;color:#8b7e6b;">今日草稿</div><div style="font-size:13px;font-weight:700;color:#d4a017;">1 条</div></div>
+        </div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:#5a4a2a;margin:12px 0 7px;">今日记录</div>
+      <div class="grade-grid">
+        <div class="gc gc-red" data-action="filter-grade" data-grade="red" style="cursor:pointer;"><div class="arrow">↗</div><div class="lbl">红色 · 危重</div><div class="num">02<span style="font-size:11px;font-weight:400;"> /例</span></div></div>
+        <div class="gc gc-yellow" data-action="filter-grade" data-grade="yellow" style="cursor:pointer;"><div class="arrow">↗</div><div class="lbl">黄色 · 重伤</div><div class="num">03<span style="font-size:11px;font-weight:400;"> /例</span></div></div>
+        <div class="gc gc-green" data-action="filter-grade" data-grade="green" style="cursor:pointer;"><div class="arrow">↗</div><div class="lbl">绿色 · 轻伤</div><div class="num">03<span style="font-size:11px;font-weight:400;"> /例</span></div></div>
+        <div class="gc gc-black" data-action="filter-grade" data-grade="black" style="cursor:pointer;"><div class="arrow">↗</div><div class="lbl">黑色 · 死亡</div><div class="num">00<span style="font-size:11px;font-weight:400;"> /例</span></div></div>
+      </div>
+      <div style="font-size:12px;font-weight:600;color:#5a4a2a;margin:12px 0 7px;">最近任务</div>
+      ${recent.map(t => `
+        <div class="card" data-action="goto-soap" style="cursor:pointer;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="card-title">${t.id}</div>
+              <div style="font-size:11px;color:#8b7e6b;margin-top:3px;">${t.meta} · ${t.time} · ${METHOD_LABEL[t.method]}</div>
+            </div>
+            <span class="badge ${t.status==='done'?'badge-ok':'badge-warn'}">${t.status==='done'?'已归档':'草稿'}</span>
+          </div>
+        </div>
+      `).join('')}
+    </div>
+    <div class="tab-bar-phone">
+      <div class="tab-item on" data-action="goto-home"><span class="tab-icon">⌂</span>主页</div>
+      <div class="tab-item" data-action="goto-history"><span class="tab-icon">▦</span>记录</div>
+      <div class="tab-item" data-action="tab-stat"><span class="tab-icon">↑</span>统计</div>
+      <div class="tab-item" data-action="tab-msg"><span class="tab-icon">✉</span>消息</div>
+    </div>
+  `;
+}
+
+function renderScan() {
+  const isOffline = state.network !== 'online';
+  return `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <!-- 上半：深绿扫码区，全宽无圆角 -->
+      <div style="background:#1a3d16;padding:14px 16px 20px;flex-shrink:0;cursor:pointer;position:relative;" data-action="goto-assess">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <span data-action="back" style="color:#a8d4a0;font-size:22px;cursor:pointer;padding:2px 6px;">‹</span>
+          <div style="flex:1;text-align:center;">
+            <div style="font-size:15px;font-weight:600;color:#fff;">扫描腕带</div>
+            <div style="font-size:11px;color:#a8d4a0;margin-top:1px;">对准伤员手腕条码 / NFC</div>
+          </div>
+          <span style="font-size:12px;color:#a8d4a0;">帮助</span>
+        </div>
+        <!-- 取景框：角线样式 -->
+        <div style="position:relative;width:180px;height:180px;margin:0 auto 14px;">
+          <!-- 四个角线 -->
+          <div style="position:absolute;top:0;left:0;width:24px;height:24px;border-top:3px solid #fff;border-left:3px solid #fff;border-radius:3px 0 0 0;"></div>
+          <div style="position:absolute;top:0;right:0;width:24px;height:24px;border-top:3px solid #fff;border-right:3px solid #fff;border-radius:0 3px 0 0;"></div>
+          <div style="position:absolute;bottom:0;left:0;width:24px;height:24px;border-bottom:3px solid #fff;border-left:3px solid #fff;border-radius:0 0 0 3px;"></div>
+          <div style="position:absolute;bottom:0;right:0;width:24px;height:24px;border-bottom:3px solid #fff;border-right:3px solid #fff;border-radius:0 0 3px 0;"></div>
+          <!-- SVG 二维码点阵 -->
+          <div style="position:absolute;inset:16px;display:flex;align-items:center;justify-content:center;">
+            <svg width="140" height="140" viewBox="0 0 21 21" xmlns="http://www.w3.org/2000/svg" shape-rendering="crispEdges">
+              <rect width="21" height="21" fill="#1a3d16"/>
+              <!-- 左上定位块 -->
+              <rect x="0" y="0" width="7" height="7" fill="#f5f0e8"/><rect x="1" y="1" width="5" height="5" fill="#1a3d16"/><rect x="2" y="2" width="3" height="3" fill="#f5f0e8"/>
+              <!-- 右上定位块 -->
+              <rect x="14" y="0" width="7" height="7" fill="#f5f0e8"/><rect x="15" y="1" width="5" height="5" fill="#1a3d16"/><rect x="16" y="2" width="3" height="3" fill="#f5f0e8"/>
+              <!-- 左下定位块 -->
+              <rect x="0" y="14" width="7" height="7" fill="#f5f0e8"/><rect x="1" y="15" width="5" height="5" fill="#1a3d16"/><rect x="2" y="16" width="3" height="3" fill="#f5f0e8"/>
+              <!-- 数据模块 -->
+              <rect x="8" y="0" fill="#f5f0e8" width="1" height="1"/><rect x="10" y="0" fill="#f5f0e8" width="1" height="1"/><rect x="12" y="0" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="7" y="1" fill="#f5f0e8" width="1" height="1"/><rect x="9" y="1" fill="#f5f0e8" width="1" height="1"/><rect x="11" y="1" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="8" y="2" fill="#f5f0e8" width="1" height="1"/><rect x="10" y="2" fill="#f5f0e8" width="1" height="1"/><rect x="13" y="2" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="7" y="3" fill="#f5f0e8" width="1" height="1"/><rect x="9" y="3" fill="#f5f0e8" width="1" height="1"/><rect x="12" y="3" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="8" y="4" fill="#f5f0e8" width="1" height="1"/><rect x="11" y="4" fill="#f5f0e8" width="1" height="1"/><rect x="13" y="4" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="7" y="5" fill="#f5f0e8" width="1" height="1"/><rect x="10" y="5" fill="#f5f0e8" width="1" height="1"/><rect x="12" y="5" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="8" y="6" fill="#f5f0e8" width="1" height="1"/><rect x="9" y="6" fill="#f5f0e8" width="1" height="1"/><rect x="13" y="6" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="0" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="2" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="4" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="6" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="8" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="10" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="12" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="14" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="16" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="18" y="7" fill="#f5f0e8" width="1" height="1"/><rect x="20" y="7" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="1" y="8" fill="#f5f0e8" width="1" height="1"/><rect x="3" y="8" fill="#f5f0e8" width="1" height="1"/><rect x="7" y="8" fill="#f5f0e8" width="1" height="1"/><rect x="9" y="8" fill="#f5f0e8" width="1" height="1"/><rect x="11" y="8" fill="#f5f0e8" width="1" height="1"/><rect x="15" y="8" fill="#f5f0e8" width="1" height="1"/><rect x="17" y="8" fill="#f5f0e8" width="1" height="1"/><rect x="19" y="8" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="0" y="9" fill="#f5f0e8" width="1" height="1"/><rect x="4" y="9" fill="#f5f0e8" width="1" height="1"/><rect x="6" y="9" fill="#f5f0e8" width="1" height="1"/><rect x="10" y="9" fill="#f5f0e8" width="1" height="1"/><rect x="12" y="9" fill="#f5f0e8" width="1" height="1"/><rect x="14" y="9" fill="#f5f0e8" width="1" height="1"/><rect x="18" y="9" fill="#f5f0e8" width="1" height="1"/><rect x="20" y="9" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="2" y="10" fill="#f5f0e8" width="1" height="1"/><rect x="5" y="10" fill="#f5f0e8" width="1" height="1"/><rect x="8" y="10" fill="#f5f0e8" width="1" height="1"/><rect x="11" y="10" fill="#f5f0e8" width="1" height="1"/><rect x="13" y="10" fill="#f5f0e8" width="1" height="1"/><rect x="16" y="10" fill="#f5f0e8" width="1" height="1"/><rect x="19" y="10" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="1" y="11" fill="#f5f0e8" width="1" height="1"/><rect x="3" y="11" fill="#f5f0e8" width="1" height="1"/><rect x="6" y="11" fill="#f5f0e8" width="1" height="1"/><rect x="9" y="11" fill="#f5f0e8" width="1" height="1"/><rect x="12" y="11" fill="#f5f0e8" width="1" height="1"/><rect x="15" y="11" fill="#f5f0e8" width="1" height="1"/><rect x="17" y="11" fill="#f5f0e8" width="1" height="1"/><rect x="20" y="11" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="0" y="12" fill="#f5f0e8" width="1" height="1"/><rect x="4" y="12" fill="#f5f0e8" width="1" height="1"/><rect x="7" y="12" fill="#f5f0e8" width="1" height="1"/><rect x="10" y="12" fill="#f5f0e8" width="1" height="1"/><rect x="14" y="12" fill="#f5f0e8" width="1" height="1"/><rect x="18" y="12" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="2" y="13" fill="#f5f0e8" width="1" height="1"/><rect x="5" y="13" fill="#f5f0e8" width="1" height="1"/><rect x="8" y="13" fill="#f5f0e8" width="1" height="1"/><rect x="11" y="13" fill="#f5f0e8" width="1" height="1"/><rect x="13" y="13" fill="#f5f0e8" width="1" height="1"/><rect x="16" y="13" fill="#f5f0e8" width="1" height="1"/><rect x="19" y="13" fill="#f5f0e8" width="1" height="1"/>
+              <!-- 右下角小定位块 -->
+              <rect x="14" y="14" width="3" height="3" fill="#f5f0e8"/>
+              <rect x="14" y="17" fill="#f5f0e8" width="1" height="1"/><rect x="16" y="17" fill="#f5f0e8" width="1" height="1"/><rect x="15" y="18" fill="#f5f0e8" width="1" height="1"/><rect x="17" y="18" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="18" y="14" fill="#f5f0e8" width="1" height="1"/><rect x="20" y="14" fill="#f5f0e8" width="1" height="1"/><rect x="19" y="15" fill="#f5f0e8" width="1" height="1"/><rect x="18" y="16" fill="#f5f0e8" width="1" height="1"/><rect x="20" y="16" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="0" y="14" fill="#f5f0e8" width="1" height="1"/><rect x="2" y="14" fill="#f5f0e8" width="1" height="1"/><rect x="4" y="14" fill="#f5f0e8" width="1" height="1"/><rect x="6" y="14" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="1" y="15" fill="#f5f0e8" width="1" height="1"/><rect x="3" y="15" fill="#f5f0e8" width="1" height="1"/><rect x="5" y="15" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="0" y="16" fill="#f5f0e8" width="1" height="1"/><rect x="4" y="16" fill="#f5f0e8" width="1" height="1"/><rect x="6" y="16" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="2" y="17" fill="#f5f0e8" width="1" height="1"/><rect x="5" y="17" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="0" y="18" fill="#f5f0e8" width="1" height="1"/><rect x="3" y="18" fill="#f5f0e8" width="1" height="1"/><rect x="6" y="18" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="1" y="19" fill="#f5f0e8" width="1" height="1"/><rect x="4" y="19" fill="#f5f0e8" width="1" height="1"/><rect x="8" y="19" fill="#f5f0e8" width="1" height="1"/><rect x="10" y="19" fill="#f5f0e8" width="1" height="1"/><rect x="12" y="19" fill="#f5f0e8" width="1" height="1"/>
+              <rect x="0" y="20" fill="#f5f0e8" width="1" height="1"/><rect x="2" y="20" fill="#f5f0e8" width="1" height="1"/><rect x="5" y="20" fill="#f5f0e8" width="1" height="1"/><rect x="9" y="20" fill="#f5f0e8" width="1" height="1"/><rect x="11" y="20" fill="#f5f0e8" width="1" height="1"/>
+            </svg>
+          </div>
+        </div>
+        <div style="text-align:center;font-size:11px;color:#a8d4a0;">自动识别中 · 请保持平稳</div>
+      </div>
+
+      <!-- 下半：奶白色背景滚动区 -->
+      <div class="body-scroll" style="padding-top:14px;">
+        <!-- 手动输入腕带编号 -->
+        <div class="card" style="margin-bottom:10px;">
+          <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:6px;">
+            <div>
+              <div style="font-size:13px;font-weight:600;color:#1a1a1a;">手动输入腕带编号</div>
+              <div style="font-size:10px;color:#8b7e6b;margin-top:2px;">摄像头损坏或光线不足时使用</div>
+            </div>
+            ${isOffline ? `<span style="font-size:9px;font-weight:600;background:#fff3d4;color:#b07a14;border-radius:6px;padding:2px 7px;">已离线 · 本地存储</span>` : ''}
+          </div>
+          <!-- 输入框：前缀 + 三位已填 + 三位待填 -->
+          <div style="display:flex;align-items:center;gap:6px;background:#f0ebe0;border-radius:10px;padding:8px 10px;margin-bottom:6px;">
+            <span style="font-size:11px;color:#8b7e6b;white-space:nowrap;">SH-EMS-002 · 260524</span>
+            <div style="display:flex;gap:4px;margin-left:4px;">
+              <span style="width:22px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#1a3d16;border:1.5px solid #d8ecd8;">0</span>
+              <span style="width:22px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#1a3d16;border:1.5px solid #d8ecd8;">0</span>
+              <span style="width:22px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;font-weight:700;color:#1a3d16;border:1.5px solid #d8ecd8;">8</span>
+              <span style="width:22px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#ccc;border:1.5px dashed #d8ecd8;">_</span>
+              <span style="width:22px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#ccc;border:1.5px dashed #d8ecd8;">_</span>
+              <span style="width:22px;height:28px;background:#fff;border-radius:6px;display:flex;align-items:center;justify-content:center;font-size:14px;color:#ccc;border:1.5px dashed #d8ecd8;">_</span>
+            </div>
+          </div>
+          <div style="font-size:10px;color:#aaa;">输入腕带末 6 位 · 系统自动拼接机构与日期前缀</div>
+        </div>
+
+        <!-- 进行中的腕带 -->
+        <div style="font-size:11px;font-weight:600;color:#5a4a2a;margin:10px 0 6px;">进行中的腕带 <span style="float:right;color:#8b7e6b;font-weight:400;">本任务 · 3</span></div>
+        <div class="card" style="padding:8px 12px;">
+          ${state.myHistory.map(t => `
+            <div class="inprogress-item" data-action="goto-assess">
+              <div style="display:flex;align-items:center;"><span class="dot dot-${t.grade}"></span><div><div style="font-size:11px;font-weight:600;">${t.id}</div><div style="font-size:9px;color:#8b7e6b;">${t.meta} · ${t.status==='draft'?'待AI分级':'处置录入中'}</div></div></div>
+              <span style="color:#ccc;font-size:14px;">›</span>
+            </div>
+          `).join('')}
+        </div>
+        <button class="primary-btn" data-action="goto-assess" style="margin-top:8px;">确认扫码 · 开始评估</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderAssess() {
+  const errState = state.errState;
+  const g = state.grade || 'red';
+  const hasAudio = state.hasTranscript; // 只有录完音才显示 AI 分级区域
+
+  let aiBlock = '';
+
+  if (!hasAudio) {
+    // 未录音：提示引导，不显示分级
+    aiBlock = `
+      <div style="background:#f0ebe0;border-radius:14px;padding:14px 14px;margin:8px 0;text-align:center;border:1.5px dashed #d8c9b0;">
+        <div style="font-size:13px;color:#8b7e6b;margin-bottom:4px;">📋 尚未录入伤情</div>
+        <div style="font-size:11px;color:#aaa;">请先按住麦克风录入伤情描述<br>AI 将自动提取体征并给出分级建议</div>
+      </div>`;
+  } else if (errState === 'loading') {
+    aiBlock = `
+      <div style="background:#1a3d16;border-radius:14px;padding:11px 13px;margin:8px 0;">
+        <div style="font-size:9px;font-weight:700;color:#a8d4a0;margin-bottom:8px;">✦ AI 分级建议 · 处理中…</div>
+        <div class="skeleton" style="height:12px;width:60%;margin-bottom:6px;"></div>
+        <div class="skeleton" style="height:12px;width:40%;"></div>
+      </div>
+      <div class="action-row">
+        <button class="btn-sec" style="opacity:0.4;cursor:not-allowed;">修改等级</button>
+        <button class="btn-sec" style="opacity:0.4;cursor:not-allowed;">AI 处理中…</button>
+      </div>`;
+  } else if (errState === 'error') {
+    aiBlock = `
+      <div class="error-banner">❌ <b>AI 分级暂不可用</b><br>请手动选择伤员等级，系统已切换降级模式。</div>
+      <div class="grade-grid">
+        ${['red','yellow','green','black'].map(gv=>`<div class="gc" style="background:${GRADE_COLOR[gv]};color:${GRADE_TEXT[gv]}" data-grade="${gv}"><div class="lbl">${GRADE_LABEL[gv]}</div></div>`).join('')}
+      </div>
+      <div class="action-row">
+        <button class="btn-sec">修改等级</button>
+        <button class="primary-btn" data-action="goto-soap" style="border-radius:12px;padding:10px 14px;margin-top:0;">手动确认 →</button>
+      </div>`;
+  } else if (errState === 'empty') {
+    aiBlock = `
+      <div class="empty-state" style="padding:20px;">
+        <div class="icon" style="font-size:32px;">🤖</div>
+        <div style="font-size:13px;">体征提取失败，请重新录入</div>
+      </div>
+      <div class="action-row">
+        <button class="btn-sec">重新录音</button>
+        <button class="btn-sec" style="opacity:0.4;cursor:not-allowed;">请先录入体征</button>
+      </div>`;
+  } else {
+    // 正常态：录完音 + AI 分级完成
+    aiBlock = `
+      <div class="ai-box">
+        <div class="ai-top">✦ AI 分级建议 · Qwen2.5-72B + RAG（BGE + Milvus）</div>
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:6px;">
+          <span style="background:${GRADE_COLOR[g]};color:${GRADE_TEXT[g]};border-radius:20px;padding:3px 10px;font-size:12px;font-weight:700;">● ${GRADE_LABEL[g]}</span>
+          <span style="font-size:10px;color:#a8d4a0;">大出血 + 呼吸急促</span>
+        </div>
+        <div style="font-size:9px;color:rgba(168,212,160,0.7);">仅供参考，医护最终决策</div>
+      </div>
+      <div class="action-row">
+        <button class="btn-sec">修改等级</button>
+        <button class="primary-btn" data-action="goto-soap" style="border-radius:12px;padding:10px 14px;margin-top:0;">确认分级 →</button>
+      </div>`;
+  }
+
+  return `
+    <div class="nav-bar"><span class="nav-back" data-action="back">‹</span><div class="nav-title">现场评估</div><span class="badge badge-gray">草稿已存</span></div>
+    <div class="body-scroll">
+      <div class="chip-row"><span class="sm-chip">▦ PD-260524-008</span><span class="sm-chip">男 · 约35岁</span><span class="sm-chip">${METHOD_LABEL[state.method]}</span></div>
+      <div class="voice-area">
+        <button class="voice-btn" id="voice-btn" data-action="toggle-voice" style="${state.voiceOn ? 'background:#c0392b;box-shadow:0 0 0 8px rgba(192,57,43,0.15),0 0 0 16px rgba(192,57,43,0.07);' : ''}">${state.voiceOn?'⏹':'🎤'}</button>
+        <div class="voice-hint" style="${state.voiceOn ? 'color:#c0392b;font-weight:600;' : ''}">${state.voiceOn?'录音中 · 点击停止':'按住录入伤情描述'}</div>
+      </div>
+      <div class="transcript" style="${!hasAudio ? 'color:#bbb;font-style:italic;' : ''}">${state.voiceOn?'正在转写…': hasAudio ? '「左腿开放性骨折，出血量大，呼吸急促，脉搏细弱，意识清醒…」' : '转写结果将显示在这里'}</div>
+      ${hasAudio ? `
+      <div style="font-size:10px;font-weight:700;color:#8b7e6b;margin:8px 0 5px;letter-spacing:.3px;">体征自动提取 <span style="font-weight:400;color:#bbb;">· MacBERT NER + Qwen2.5 校验</span></div>
+      <div class="vital-grid">
+        <div class="vital-box"><div class="vital-lbl">呼吸</div><div class="vital-val">急促</div></div>
+        <div class="vital-box"><div class="vital-lbl">脉搏</div><div class="vital-val">细弱</div></div>
+        <div class="vital-box"><div class="vital-lbl">意识</div><div class="vital-val">清醒</div></div>
+        <div class="vital-box"><div class="vital-lbl">出血</div><div class="vital-val">大量</div></div>
+      </div>` : ''}
+      ${aiBlock}
+    </div>
+  `;
+}
+
+function renderSoap() {
+  const g = state.grade || 'red';
+  return `
+    <div class="nav-bar"><span class="nav-back" data-action="back">‹</span><div class="nav-title">病历记录</div>${gradeBar()}</div>
+    <div class="body-scroll">
+      <div style="font-size:10px;color:#8b7e6b;margin-bottom:8px;">SOAP 格式 · 自动生成 · PD-260524-008</div>
+      <div class="soap-card"><div class="soap-lbl">S · 主观</div><div class="soap-txt">左腿开放性骨折，大量出血，伤员自述剧烈疼痛，无法站立</div></div>
+      <div class="soap-card">
+        <div class="soap-lbl">O · 客观体征</div>
+        <div class="vital-grid" style="margin-bottom:0;">
+          <div class="vital-box"><div class="vital-lbl">呼吸</div><div class="vital-val">急促</div></div>
+          <div class="vital-box"><div class="vital-lbl">脉搏</div><div class="vital-val">细弱</div></div>
+        </div>
+      </div>
+      <div class="soap-card">
+        <div class="soap-lbl">A · 评估</div>
+        <div class="soap-txt" style="display:flex;align-items:center;gap:6px;">
+          <span style="background:${GRADE_COLOR[g]};color:${GRADE_TEXT[g]};border-radius:20px;padding:2px 8px;font-size:10px;font-weight:700;">${GRADE_LABEL[g]}</span>
+          <span>大出血合并呼吸急促，${METHOD_LABEL[state.method]}标准</span>
+        </div>
+      </div>
+      <div class="soap-card"><div class="soap-lbl">P · 处置</div><div class="soap-txt" style="color:#ccc;">语音录入处置措施…</div></div>
+      <div class="rag-box">
+        <div class="rag-lbl">📚 RAG 知识库建议 · LangChain + BGE + Milvus</div>
+        <div class="rag-txt">开放性骨折：加压止血优先，禁止复位，固定后转运。禁用阿司匹林（抗凝风险）</div>
+      </div>
+      <div class="action-row">
+        <button class="btn-sec">存草稿</button>
+        <button class="primary-btn" data-action="goto-done" style="border-radius:12px;padding:10px 14px;margin-top:0;">提交归档 ✓</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderHistory() {
+  const gradeColors = { red:'#c0392b', yellow:'#d4a017', green:'#27ae60', black:'#555' };
+  const gradeBgs = { red:'#fff0f0', yellow:'#fffbf0', green:'#f0fff4', black:'#f5f5f5' };
+  const gradeDot = { red:'dot-red', yellow:'dot-yellow', green:'dot-green', black:'' };
+
+  // 丰富的历史数据
+  const allHistory = [
+    { id:'PD-260524-008', grade:'red',    meta:'男·约35岁', time:'09:41', method:'start', status:'done' },
+    { id:'PD-260524-007', grade:'yellow', meta:'女·约28岁', time:'09:28', method:'start', status:'draft' },
+    { id:'PD-260524-006', grade:'green',  meta:'男·约19岁', time:'09:10', method:'salt',  status:'done' },
+    { id:'PD-260524-005', grade:'red',    meta:'男·约40岁', time:'08:55', method:'start', status:'done' },
+    { id:'PD-260524-004', grade:'black',  meta:'女·约60岁', time:'08:42', method:'start', status:'done' },
+    { id:'PD-260524-003', grade:'yellow', meta:'男·约25岁', time:'08:30', method:'salt',  status:'done' },
+  ];
+
+  return `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <!-- 顶部深绿横幅 -->
+      <div style="background:linear-gradient(135deg,#1a3d16 0%,#2d5a27 100%);padding:14px 16px 16px;flex-shrink:0;">
+        <div style="display:flex;align-items:center;gap:8px;margin-bottom:14px;">
+          <span data-action="back" style="color:#a8d4a0;font-size:22px;cursor:pointer;padding:2px 6px;">‹</span>
+          <div style="flex:1;">
+            <div style="font-size:15px;font-weight:600;color:#fff;">检伤记录</div>
+            <div style="font-size:10px;color:#a8d4a0;margin-top:1px;">本月 · 18 条任务</div>
+          </div>
+          <span style="font-size:11px;color:#a8d4a0;background:rgba(255,255,255,0.12);padding:4px 10px;border-radius:20px;">筛选</span>
+        </div>
+        <!-- 四色分布 -->
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:6px;">
+          <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 4px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:#ffb3b3;">4</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-top:2px;">红色</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 4px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:#ffe5a0;">7</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-top:2px;">黄色</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 4px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:#a8d4a0;">6</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-top:2px;">绿色</div>
+          </div>
+          <div style="background:rgba(255,255,255,0.1);border-radius:10px;padding:8px 4px;text-align:center;">
+            <div style="font-size:20px;font-weight:700;color:rgba(255,255,255,0.5);">1</div>
+            <div style="font-size:9px;color:rgba(255,255,255,0.6);margin-top:2px;">黑色</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- 下半滚动区 -->
+      <div class="body-scroll" style="padding-top:12px;">
+        <!-- 筛选标签 -->
+        <div style="display:flex;gap:6px;margin-bottom:12px;overflow-x:auto;padding-bottom:4px;padding-left:2px;padding-right:4px;">
+          ${[['all','全部'],['red','红色'],['yellow','黄色'],['green','绿色'],['draft','草稿']].map(([val, lbl]) => {
+            const isActive = state.gradeFilter === val;
+            const colors = { all:'background:#1a3d16;color:#fff;', red:'background:#fff0f0;color:#c0392b;', yellow:'background:#fffbf0;color:#d4a017;', green:'background:#f0fff4;color:#27ae60;', draft:'background:#f5f5f5;color:#555;' };
+            const activeStyle = isActive ? (colors[val] || '') + 'box-shadow:0 0 0 2px currentColor;' : 'background:#f0ebe0;color:#8b7e6b;';
+            return `<span data-action="set-filter" data-filter="${val}" style="flex-shrink:0;border-radius:20px;padding:4px 12px;font-size:11px;font-weight:600;cursor:pointer;${activeStyle}">${lbl}</span>`;
+          }).join('')}
+        </div>
+
+        <!-- 记录列表 -->
+        <div style="font-size:11px;font-weight:600;color:#5a4a2a;margin-bottom:8px;">
+          ${state.gradeFilter === 'all' ? `今日记录 · ${allHistory.length} 条` : `筛选：${GRADE_LABEL[state.gradeFilter] || '草稿'}`}
+        </div>
+        ${allHistory
+          .filter(t => state.gradeFilter === 'all' || (state.gradeFilter === 'draft' ? t.status === 'draft' : t.grade === state.gradeFilter))
+          .map(t => `
+          <div class="card" data-action="goto-soap" style="cursor:pointer;margin-bottom:8px;padding:12px 14px;">
+            <div style="display:flex;justify-content:space-between;align-items:flex-start;">
+              <div style="display:flex;align-items:center;gap:8px;flex:1;min-width:0;">
+                <!-- 等级色块 -->
+                <div style="width:36px;height:36px;border-radius:10px;background:${gradeBgs[t.grade]};display:flex;align-items:center;justify-content:center;flex-shrink:0;">
+                  <span class="dot ${gradeDot[t.grade]||''}" style="width:10px;height:10px;background:${gradeColors[t.grade]};"></span>
+                </div>
+                <div style="min-width:0;">
+                  <div style="font-size:12px;font-weight:700;color:#1a1a1a;">${t.id}</div>
+                  <div style="font-size:10px;color:#8b7e6b;margin-top:2px;">${t.meta} · ${t.time} · ${METHOD_LABEL[t.method]}</div>
+                </div>
+              </div>
+              <div style="display:flex;flex-direction:column;align-items:flex-end;gap:4px;flex-shrink:0;margin-left:8px;">
+                <span style="font-size:10px;font-weight:600;background:${gradeBgs[t.grade]};color:${gradeColors[t.grade]};border-radius:20px;padding:2px 8px;">${GRADE_LABEL[t.grade]}</span>
+                <span style="font-size:9px;font-weight:600;${t.status==='done'?'color:#27ae60;':'color:#d4a017;'}">${t.status==='done'?'✓ 已归档':'● 草稿'}</span>
+              </div>
+            </div>
+          </div>
+        `).join('')}
+      </div>
+
+      <div class="tab-bar-phone">
+        <div class="tab-item" data-action="goto-home"><span class="tab-icon">⌂</span>主页</div>
+        <div class="tab-item on" data-action="goto-history"><span class="tab-icon">▦</span>记录</div>
+        <div class="tab-item" data-action="tab-stat"><span class="tab-icon">↑</span>统计</div>
+        <div class="tab-item" data-action="tab-msg"><span class="tab-icon">✉</span>消息</div>
+      </div>
+    </div>
+  `;
+}
+
+function renderDone() {
+  const g = state.grade || 'red';
+  const gradeColors = { red:'#c0392b', yellow:'#d4a017', green:'#27ae60', black:'#555' };
+  const gradeBgs = { red:'#fff0f0', yellow:'#fffbf0', green:'#f0fff4', black:'#f5f5f5' };
+  return `
+    <div style="display:flex;flex-direction:column;height:100%;">
+      <!-- 顶部深绿成功横幅 -->
+      <div style="background:linear-gradient(160deg,#1a3d16 0%,#2d5a27 100%);padding:32px 20px 28px;display:flex;flex-direction:column;align-items:center;flex-shrink:0;">
+        <!-- 勾圆圈 -->
+        <div style="width:72px;height:72px;border-radius:50%;background:rgba(255,255,255,0.15);display:flex;align-items:center;justify-content:center;margin-bottom:14px;border:2px solid rgba(255,255,255,0.3);">
+          <div style="width:52px;height:52px;border-radius:50%;background:#fff;display:flex;align-items:center;justify-content:center;">
+            <svg width="26" height="20" viewBox="0 0 26 20" fill="none"><path d="M2 10L9.5 17.5L24 2" stroke="#2d5a27" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div style="font-size:20px;font-weight:700;color:#fff;margin-bottom:6px;">归档完成</div>
+        <div style="font-size:12px;color:rgba(255,255,255,0.75);margin-bottom:3px;">PD-260524-008 · ${GRADE_LABEL[g]} · 已同步云端 ☁️</div>
+        <div style="font-size:11px;color:rgba(255,255,255,0.5);">09:41:32 · SH-EMS-002 · 扫码→归档用时 <b style="color:rgba(255,255,255,0.8);">4分18秒</b></div>
+      </div>
+
+      <!-- 下半内容区 -->
+      <div class="body-scroll">
+        <!-- 本次任务等级分布 -->
+        <div style="font-size:12px;font-weight:600;color:#5a4a2a;margin:4px 0 10px;">本次任务等级分布</div>
+        <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:7px;margin-bottom:14px;">
+          <div style="background:${gradeBgs.red};border-radius:12px;padding:12px 6px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;color:${gradeColors.red};line-height:1;">1</div>
+            <div style="font-size:10px;color:${gradeColors.red};margin-top:4px;font-weight:500;">红色</div>
+          </div>
+          <div style="background:${gradeBgs.yellow};border-radius:12px;padding:12px 6px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;color:${gradeColors.yellow};line-height:1;">2</div>
+            <div style="font-size:10px;color:${gradeColors.yellow};margin-top:4px;font-weight:500;">黄色</div>
+          </div>
+          <div style="background:${gradeBgs.green};border-radius:12px;padding:12px 6px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;color:${gradeColors.green};line-height:1;">3</div>
+            <div style="font-size:10px;color:${gradeColors.green};margin-top:4px;font-weight:500;">绿色</div>
+          </div>
+          <div style="background:${gradeBgs.black};border-radius:12px;padding:12px 6px;text-align:center;">
+            <div style="font-size:26px;font-weight:700;color:${gradeColors.black};line-height:1;">0</div>
+            <div style="font-size:10px;color:${gradeColors.black};margin-top:4px;font-weight:500;">黑色</div>
+          </div>
+        </div>
+
+        <!-- 任务详情小卡片 -->
+        <div class="card" style="margin-bottom:14px;">
+          <div style="font-size:11px;font-weight:600;color:#5a4a2a;margin-bottom:10px;">任务详情</div>
+          <div style="display:flex;flex-direction:column;gap:7px;">
+            <div style="display:flex;justify-content:space-between;font-size:12px;">
+              <span style="color:#8b7e6b;">腕带编号</span><span style="font-weight:600;color:#1a1a1a;">PD-260524-008</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;">
+              <span style="color:#8b7e6b;">检伤方法</span><span style="font-weight:600;color:#1a1a1a;">${METHOD_LABEL[state.method]}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;">
+              <span style="color:#8b7e6b;">最终等级</span>
+              <span style="font-weight:600;background:${GRADE_COLOR[g]};color:${GRADE_TEXT[g]};padding:1px 8px;border-radius:20px;">${GRADE_LABEL[g]}</span>
+            </div>
+            <div style="display:flex;justify-content:space-between;font-size:12px;">
+              <span style="color:#8b7e6b;">数据同步</span><span style="font-weight:600;color:#27ae60;">✓ 已同步云端</span>
+            </div>
+          </div>
+        </div>
+
+        <button class="primary-btn" data-action="goto-home" style="margin-bottom:4px;">返回主页</button>
+        <button class="btn-sec" data-action="goto-scan" style="width:100%;padding:10px;margin-top:8px;text-align:center;border-radius:12px;">继续扫描下一位伤员</button>
+      </div>
+    </div>
+  `;
+}
+
+function renderModal() { return ''; }
+
+function bindPhoneEvents() {}
+
+function bindConsole() {
+  // 单选 chip
+  ['ctrl-method','ctrl-grade'].forEach(id => {
+    const grid = document.getElementById(id);
+    if (!grid) return;
+    grid.addEventListener('click', e => {
+      const chip = e.target.closest('.chip'); if (!chip) return;
+      grid.querySelectorAll('.chip').forEach(c => c.classList.remove('active'));
+      chip.classList.add('active');
+      const key = id === 'ctrl-method' ? 'method' : 'grade';
+      state[key] = chip.dataset.v;
+    });
+  });
+  // seg 切换
+  [['ctrl-role','role'],['ctrl-network','network'],['ctrl-state','errState']].forEach(([id,key]) => {
+    const seg = document.getElementById(id);
+    if (!seg) return;
+    seg.addEventListener('click', e => {
+      const btn = e.target.closest('button'); if (!btn) return;
+      seg.querySelectorAll('button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      state[key] = btn.dataset.v;
+    });
+  });
+  document.getElementById('apply-btn').addEventListener('click', () => {
+    showToast('已应用控制台变量'); render();
+  });
+  document.getElementById('ctrl-jump').addEventListener('change', e => {
+    const v = e.target.value; if (!v) return;
+    navigate(v);
+    e.target.value = '';
+  });
+}
+
+// 初始化：事件只绑定一次，render() 只更新 DOM 不重复绑定
+function initPhoneEvents() {
+  const screen = document.getElementById('screen');
+  screen.addEventListener('click', e => {
+    const el = e.target.closest('[data-action]');
+    if (!el) return;
+    const action = el.dataset.action;
+    if (action === 'back') goBack();
+    else if (action === 'goto-home') navigate('home');
+    else if (action === 'goto-scan') navigate('scan');
+    else if (action === 'goto-assess') { state.voiceOn = false; state.hasTranscript = false; navigate('assess'); }
+    else if (action === 'goto-soap') navigate('soap');
+    else if (action === 'goto-history') { state.gradeFilter = 'all'; navigate('history'); }
+    else if (action === 'filter-grade') { state.gradeFilter = el.dataset.grade; navigate('history'); }
+    else if (action === 'set-filter') { state.gradeFilter = el.dataset.filter; render(); }
+    else if (action === 'goto-done') navigate('done');
+    else if (action === 'toggle-voice') {
+      state.voiceOn = !state.voiceOn;
+      if (!state.voiceOn) state.hasTranscript = true; // 停止录音 → 转写完成
+      render();
+    }
+    else if (action === 'tab-stat') showToast('统计功能 · 二期上线');
+    else if (action === 'tab-msg') showToast('消息功能 · 二期上线');
+  });
+}
+
+bindConsole();
+render();
+initPhoneEvents();
+</script>
+</body>
+</html>

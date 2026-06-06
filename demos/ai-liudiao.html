@@ -1,0 +1,867 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>AI 传染病调查系统 · 综合评审页 · MVP</title>
+<style>
+  :root { --bg: #eef2ec; --ink: #1a3d16; --muted: #6b8a68; --accent: #2d5a27; --cream: #f5f0e8; }
+  * { box-sizing: border-box; }
+  body { background: var(--bg); font-family: -apple-system, BlinkMacSystemFont, "PingFang SC", "Microsoft YaHei", sans-serif; color: #1a1a1a; margin: 0; }
+
+  /* 页面外壳：左原型 + 右文档 */
+  .review-shell { display: grid; grid-template-columns: minmax(0, 1.15fr) minmax(0, 0.85fr); gap: 28px; padding: 24px clamp(20px, 3vw, 44px); min-height: 100vh; align-items: start; max-width: 1880px; margin: 0 auto; }
+
+  /* ===== 左栏：桌面端工作台原型 ===== */
+  .app-panel { position: sticky; top: 24px; max-height: calc(100vh - 48px); display: flex; flex-direction: column; }
+  .app-toolbar { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; margin-bottom: 12px; }
+  .app-toolbar .tb-label { font-size: 11px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin-right: 2px; }
+  .seg { display: inline-flex; gap: 4px; background: #d8ecd8; padding: 4px; border-radius: 10px; }
+  .seg button { padding: 6px 12px; font-size: 12px; border-radius: 8px; cursor: pointer; border: none; background: transparent; font-family: inherit; color: #1a1a1a; white-space: nowrap; }
+  .seg button.active { background: #fff; box-shadow: 0 1px 4px rgba(0,0,0,0.08); color: var(--ink); font-weight: 600; }
+  .tb-spacer { flex: 1; }
+  .tb-net { font-size: 11px; color: var(--muted); }
+
+  /* 桌面浏览器外框 */
+  .desktop { background: #1a1a1a; border-radius: 16px; padding: 10px 10px 12px; box-shadow: 0 24px 64px rgba(0,0,0,0.20); flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .desktop-bar { display: flex; align-items: center; gap: 8px; padding: 4px 6px 10px; flex-shrink: 0; }
+  .dot-mac { width: 11px; height: 11px; border-radius: 50%; }
+  .dot-r { background: #ff5f56; } .dot-y { background: #ffbd2e; } .dot-g { background: #27c93f; }
+  .desktop-url { flex: 1; margin-left: 10px; background: #2c2c2c; color: #9aa; font-size: 11px; border-radius: 7px; padding: 5px 12px; }
+  .screen { flex: 1; min-height: 0; background: var(--cream); border-radius: 10px; overflow: hidden; position: relative; display: flex; flex-direction: column; }
+
+  /* 应用内布局：顶栏 + 侧边导航 + 内容区 */
+  .app-topbar { height: 50px; flex-shrink: 0; background: linear-gradient(135deg,#1a3d16 0%,#2d5a27 100%); color: #fff; display: flex; align-items: center; padding: 0 18px; gap: 12px; }
+  .app-logo { font-size: 14px; font-weight: 600; letter-spacing: .3px; }
+  .app-topbar .pill { font-size: 10px; background: rgba(255,255,255,0.16); padding: 3px 9px; border-radius: 20px; font-weight: 400; }
+  .app-topbar-right { margin-left: auto; display: flex; align-items: center; gap: 10px; font-size: 11px; color: #cfe6cb; }
+  .app-main { flex: 1; min-height: 0; display: grid; grid-template-columns: 186px minmax(0,1fr); }
+  .app-side { background: #fcfaf6; border-right: 0.5px solid #ece5d8; padding: 14px 10px; overflow-y: auto; }
+  .side-item { display: flex; align-items: center; gap: 10px; padding: 9px 11px; border-radius: 9px; font-size: 12.5px; color: #6b6051; cursor: pointer; margin-bottom: 1px; line-height: 1.3; transition: background .15s, color .15s; }
+  .side-item .ic { width: 16px; text-align: center; flex-shrink: 0; opacity: .85; }
+  .side-item:hover { background: #f2ede3; color: #3a3024; }
+  .side-item.on { background: #eaf2e8; color: var(--accent); font-weight: 600; }
+  .side-sep { font-size: 9px; color: #b8ab92; text-transform: uppercase; letter-spacing: .1em; padding: 14px 11px 6px; }
+  .app-content { overflow-y: auto; padding: 22px 26px; position: relative; }
+
+  /* 通用组件 */
+  .card { background: #fff; border: 0.5px solid #e8e3d8; border-radius: 12px; padding: 15px; margin-bottom: 12px; }
+  .card-cream { background: #faf7f1; border: 0.5px solid #ece5d8; border-radius: 12px; padding: 15px; margin-bottom: 12px; }
+  .card-title { font-size: 14px; font-weight: 600; color: #1a1a1a; }
+  .sec-label { font-size: 11px; font-weight: 600; color: #6b6051; margin: 4px 0 9px; letter-spacing: .2px; }
+  .badge { display: inline-block; padding: 2px 9px; font-size: 10px; border-radius: 999px; font-weight: 500; }
+  .badge-ai { background: #eaf2e8; color: #2d5a27; }
+  .badge-warn { background: #fdf4e3; color: #a87a1e; }
+  .badge-error { background: #fbeae7; color: #b5392c; }
+  .badge-ok { background: #eaf2e8; color: #2a7a3e; }
+  .badge-gray { background: #f2efe8; color: #6b6051; }
+  .badge-blue { background: #e9f1f6; color: #2e6285; }
+  .field { margin-bottom: 12px; }
+  .field label { display: block; font-size: 12px; color: #6b6051; margin-bottom: 4px; }
+  .field input, .field textarea, .field select { width: 100%; padding: 9px 10px; font-size: 13px; border: 0.5px solid #e0dbd0; border-radius: 9px; background: #fff; font-family: inherit; color: #1a1a1a; }
+  .field input.error, .field textarea.error { border-color: #d8a59c; background: #fdf6f4; }
+  .field-hint { font-size: 11px; color: #b5392c; margin-top: 4px; }
+  .primary-btn { padding: 10px 18px; background: var(--ink); color: #fff; font-size: 13px; font-weight: 500; border-radius: 9px; cursor: pointer; border: none; font-family: inherit; transition: background .15s; }
+  .primary-btn:hover { background: #143010; }
+  .btn-sec { background: #f2ede3; color: #2d5a27; border: none; border-radius: 9px; padding: 10px 16px; font-size: 12px; font-weight: 500; cursor: pointer; font-family: inherit; }
+  .btn-sec:hover { background: #eae3d6; }
+  .skeleton { background: linear-gradient(90deg, #ece7dc 0%, #f7f3ec 50%, #ece7dc 100%); background-size: 200% 100%; animation: shimmer 1.4s infinite; border-radius: 6px; }
+  @keyframes shimmer { 0% { background-position: -200% 0; } 100% { background-position: 200% 0; } }
+  .empty-state { text-align: center; padding: 40px 24px; color: var(--muted); }
+  .empty-state .icon { font-size: 44px; margin-bottom: 12px; }
+  .error-banner { background: #fdf6f4; border: 0.5px solid #ecc9c1; color: #b5392c; padding: 12px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 13px; line-height: 1.55; }
+  .warn-banner { background: #fdf8ef; border: 0.5px solid #ebd9b3; color: #8a6518; padding: 11px 14px; border-radius: 10px; margin-bottom: 12px; font-size: 12px; line-height: 1.55; }
+  .toast { position: absolute; bottom: 22px; left: 50%; transform: translateX(-50%); background: rgba(26,61,22,0.94); color: #fff; padding: 10px 18px; border-radius: 12px; font-size: 13px; z-index: 100; opacity: 0; transition: opacity 0.2s; max-width: 80%; text-align: center; }
+  .toast.show { opacity: 1; }
+
+  /* 页面标题条 */
+  .page-bar { display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px; }
+  .page-h1 { font-size: 16px; font-weight: 600; color: #1a1a1a; }
+  .page-h2 { font-size: 11px; color: #8b7e6b; margin-top: 3px; }
+  .col-head { font-size: 12px; font-weight: 600; color: #4a4031; margin-bottom: 10px; }
+  .col-sub { font-weight: 400; color: #a99c84; font-size: 11px; }
+
+  /* 对话气泡 */
+  .chat-wrap { display: flex; flex-direction: column; gap: 12px; }
+  .bubble { max-width: 88%; padding: 10px 13px; border-radius: 14px; font-size: 13px; line-height: 1.6; }
+  .bubble-them { background: #fff; border: 0.5px solid #e8e3d8; align-self: flex-start; border-bottom-left-radius: 4px; }
+  .bubble-ai { background: var(--ink); color: #fff; align-self: flex-end; border-bottom-right-radius: 4px; }
+  .bubble-meta { font-size: 9px; margin-bottom: 5px; opacity: .75; }
+  .bubble-ai .bubble-meta { color: #a8d4a0; }
+  .bubble-them .bubble-meta { color: #8b7e6b; }
+  .field-tag { display: inline-block; background: #d8ecd8; color: #1a4a1a; font-size: 9px; font-weight: 600; padding: 2px 8px; border-radius: 20px; margin-top: 7px; }
+
+  /* 通话状态条（计时器固定不重叠） */
+  .callbar { display: flex; align-items: center; gap: 12px; background: #fff; border: 0.5px solid #e8e3d8; border-radius: 12px; padding: 10px 14px; margin-bottom: 16px; }
+  .callbar-rec { color: #8b7e6b; font-size: 13px; flex-shrink: 0; }
+  .callbar-live .callbar-rec { color: #c0392b; }
+  .callbar-wave { flex: 1; min-width: 0; display: flex; align-items: center; gap: 3px; height: 26px; overflow: hidden; }
+  .wv { width: 3px; background: #cdbfa8; border-radius: 2px; flex-shrink: 0; }
+  .wv.live { background: #c0392b; animation: wave 0.85s infinite ease-in-out; }
+  @keyframes wave { 0%,100% { transform: scaleY(0.45); } 50% { transform: scaleY(1); } }
+  .callbar-time { font-size: 12px; font-weight: 700; color: #8b7e6b; flex-shrink: 0; white-space: nowrap; }
+  .callbar-live .callbar-time { color: #c0392b; }
+  .callbar-eng { font-size: 10px; color: #a99c84; flex-shrink: 0; white-space: nowrap; padding-left: 4px; border-left: 1px solid #e8e3d8; }
+
+  /* 字段抽取网格（两列、清爽） */
+  .field-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 12px; }
+  .fb { background: #fff; border: 0.5px solid #e8e3d8; border-radius: 10px; padding: 8px 11px; }
+  .fb-l { display: block; font-size: 10px; color: #8b7e6b; margin-bottom: 3px; }
+  .fb-v { font-size: 13px; font-weight: 600; color: #1a1a1a; }
+  .fb.unsure { background: #fdf8ef; border-color: #ebd9b3; }
+  .fb.unsure .fb-l { color: #b07a14; }
+
+  /* 字段进度卡（深绿，克制） */
+  .progress-card { background: var(--ink); border-radius: 12px; padding: 12px 14px; margin-bottom: 12px; }
+  .pc-head { display: flex; justify-content: space-between; align-items: center; font-size: 11px; color: #a8d4a0; margin-bottom: 8px; }
+  .pc-head b { color: #fff; font-size: 13px; }
+  .pc-track { height: 6px; background: rgba(255,255,255,0.15); border-radius: 4px; overflow: hidden; }
+  .pc-track span { display: block; height: 100%; background: #a8d4a0; border-radius: 4px; }
+  .pc-note { font-size: 10px; color: rgba(168,212,160,0.7); margin-top: 8px; line-height: 1.5; }
+
+  /* RAG 卡（浅绿，克制） */
+  .rag-card { background: #f3f7f1; border: 0.5px solid #dde9da; border-radius: 12px; padding: 11px 13px; }
+  .rag-head { font-size: 10px; font-weight: 700; color: #2d5a27; margin-bottom: 5px; }
+  .rag-body { font-size: 11.5px; color: #3d5a37; line-height: 1.6; }
+
+  /* 通用面板 */
+  .panel { background: #fff; border: 0.5px solid #e8e3d8; border-radius: 12px; padding: 14px; }
+
+  /* 进度步骤条 */
+  .stepper { display: flex; align-items: center; gap: 4px; margin-bottom: 16px; font-size: 10px; }
+  .step { flex: 1; text-align: center; color: #b3a68c; display: flex; flex-direction: column; align-items: center; gap: 4px; }
+  .step .num { width: 22px; height: 22px; border-radius: 50%; background: #e0dbd0; color: #8b7e6b; display: inline-flex; align-items: center; justify-content: center; font-size: 10px; font-weight: 700; }
+  .step .step-t { font-size: 10px; }
+  .step.on .num { background: var(--ink); color: #fff; }
+  .step.done .num { background: #a8d4a0; color: #1a4a1a; }
+  .step.on { color: var(--ink); font-weight: 700; }
+
+  /* 通话两栏布局 */
+  .call-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; align-items: start; }
+  .call-col { min-width: 0; }
+
+  /* JSON 视图 */
+  .json-view { background: #1c2b1a; border-radius: 12px; padding: 14px 16px; font-family: 'SF Mono','Consolas',monospace; font-size: 11.5px; line-height: 1.7; color: #c8d8c4; overflow-x: auto; white-space: pre; }
+  .j-key { color: #8fd49a; } .j-str { color: #e6c98a; } .j-num { color: #9ec5ff; }
+  .j-flag { background: rgba(192,57,43,0.3); border-radius: 3px; padding: 0 3px; color: #ffb3b3; }
+  .j-unsure { background: rgba(212,160,23,0.25); border-radius: 3px; padding: 0 3px; color: #f0d090; }
+
+  /* 底部操作条 */
+  .footer-bar { position: sticky; bottom: 0; background: linear-gradient(to top, var(--cream) 70%, rgba(245,240,232,0)); padding: 14px 0 4px; margin-top: 18px; display: flex; gap: 10px; align-items: center; }
+  .footer-note { font-size: 11px; color: #8b7e6b; }
+  .takeover-btn { background: #fff; border: 1.5px solid #c0392b; color: #c0392b; border-radius: 11px; padding: 10px 16px; font-size: 12px; font-weight: 700; cursor: pointer; font-family: inherit; display: inline-flex; align-items: center; gap: 6px; }
+  .takeover-btn:hover { background: #fff0f0; }
+
+  /* 传播链图谱 */
+  .graph-stage { background: #fff; border: 0.5px solid #e8e3d8; border-radius: 14px; padding: 8px; margin-bottom: 12px; }
+  .legend { display: flex; gap: 14px; font-size: 11px; color: #5a4a2a; margin-bottom: 8px; flex-wrap: wrap; }
+  .legend span { display: inline-flex; align-items: center; gap: 5px; }
+  .lg-dot { width: 10px; height: 10px; border-radius: 50%; display: inline-block; }
+
+  /* ===== 右栏：PRD 文档 + TOC ===== */
+  .doc-panel { display: grid; grid-template-columns: minmax(0, 1fr) 196px; gap: 22px; width: 100%; }
+  .doc-content { background: #fff; border-radius: 16px; box-shadow: 0 4px 16px rgba(26,61,22,0.07); padding: 38px 46px; min-width: 0; }
+  .doc-header { border-bottom: 1px solid #e8e3d8; padding-bottom: 20px; margin-bottom: 24px; }
+  .doc-header .pills { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 12px; }
+  .doc-header h1 { font-size: 26px; font-weight: 700; margin: 0 0 8px; color: #1a1a1a; }
+  .doc-header .desc { color: #5a4a2a; font-size: 14px; line-height: 1.7; }
+  .doc-meta { display: grid; grid-template-columns: repeat(2, 1fr); gap: 8px 16px; font-size: 12px; color: var(--muted); margin-top: 16px; }
+  .doc-meta div b { color: #1a1a1a; font-weight: 600; }
+  .doc-content h2 { font-size: 19px; font-weight: 700; margin: 32px 0 14px; padding-bottom: 8px; border-bottom: 2px solid #e8e3d8; color: #1a1a1a; }
+  .doc-content h3 { font-size: 15px; font-weight: 600; margin: 22px 0 10px; color: #2d5a27; }
+  .doc-content h4 { font-size: 13.5px; font-weight: 600; margin: 16px 0 8px; color: #1a3d16; }
+  .doc-content p { font-size: 13.5px; line-height: 1.8; color: #3a2f1e; margin: 11px 0; }
+  .doc-content ul, .doc-content ol { font-size: 13.5px; line-height: 1.8; color: #3a2f1e; padding-left: 22px; }
+  .doc-content li { margin: 4px 0; }
+  .doc-content table { width: 100%; border-collapse: collapse; margin: 12px 0; font-size: 12.5px; }
+  .doc-content table th, .doc-content table td { border: 1px solid #e8e3d8; padding: 9px 11px; text-align: left; vertical-align: top; }
+  .doc-content table th { background: #f5f0e8; font-weight: 600; color: #1a3d16; }
+  .doc-content blockquote { border-left: 3px solid var(--accent); padding: 4px 16px; color: #5a4a2a; background: rgba(45,90,39,0.05); border-radius: 0 8px 8px 0; margin: 12px 0; font-size: 13px; }
+  .doc-content code { background: #f5f0e8; padding: 2px 6px; border-radius: 4px; font-size: 12px; font-family: 'SF Mono', monospace; color: #2d5a27; }
+  .doc-content .callout { background: #f0fdf4; border: 1px solid #b8e6c9; padding: 12px 16px; border-radius: 10px; margin: 16px 0; font-size: 13px; color: #1a4a1a; line-height: 1.7; }
+  .doc-content .callout.warn { background: #fff5f5; border-color: #ffd0d0; color: #c92929; }
+  .doc-content .callout.info { background: #fff8e7; border-color: #e8d6a8; color: #7a5a14; }
+  .doc-content .checklist { list-style: none; padding-left: 0; }
+  .doc-content .checklist li { padding-left: 26px; position: relative; margin: 6px 0; font-size: 13px; color: #3a2f1e; }
+  .doc-content .checklist li::before { content: "☑"; position: absolute; left: 0; color: #2a7a3e; font-weight: 700; }
+  .doc-content .checklist li.unchecked::before { content: "☐"; color: var(--muted); }
+  .module-map { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin: 14px 0; }
+  .mm { background: #f5f0e8; border: 1px solid #e8e3d8; border-radius: 10px; padding: 9px 10px; cursor: pointer; transition: all .15s; }
+  .mm:hover { border-color: var(--accent); background: #ecf3eb; }
+  .mm .mm-n { font-size: 9px; color: var(--muted); font-weight: 700; }
+  .mm .mm-t { font-size: 12px; font-weight: 600; color: #1a3d16; margin-top: 2px; }
+
+  /* TOC */
+  .doc-toc { position: sticky; top: 24px; max-height: calc(100vh - 48px); overflow-y: auto; background: rgba(255,255,255,0.88); backdrop-filter: blur(8px); border-radius: 16px; padding: 18px; align-self: start; }
+  .doc-toc h4 { font-size: 12px; color: var(--muted); text-transform: uppercase; letter-spacing: 0.06em; margin: 0 0 10px; }
+  .doc-toc ol { padding-left: 0; list-style: none; margin: 0; }
+  .doc-toc li { margin: 4px 0; }
+  .doc-toc a, .doc-toc button { display: flex; align-items: center; justify-content: space-between; width: 100%; padding: 6px 10px; font-size: 12px; color: #5a4a2a; text-decoration: none; border-radius: 6px; line-height: 1.4; border: 0; background: transparent; cursor: pointer; font-family: inherit; text-align: left; }
+  .doc-toc a:hover, .doc-toc button:hover { background: rgba(45,90,39,0.08); color: var(--ink); }
+  .doc-toc a.l2 { display: block; padding-left: 22px; font-size: 11px; color: var(--muted); }
+  .doc-toc .toc-toggle::after { content: "⌃"; color: var(--muted); font-size: 10px; transition: transform 0.16s ease; }
+  .doc-toc .toc-group.collapsed .toc-toggle::after { transform: rotate(180deg); }
+  .doc-toc .toc-children { overflow: hidden; max-height: 240px; transition: max-height 0.18s ease, opacity 0.18s ease; }
+  .doc-toc .toc-group.collapsed .toc-children { max-height: 0; opacity: 0; }
+
+  @media (max-width: 1500px) { .review-shell { grid-template-columns: 1fr; } .app-panel { position: relative; top: 0; max-height: none; } .desktop { min-height: 760px; } .doc-toc { position: relative; top: 0; max-height: none; } }
+  @media (max-width: 900px) { .doc-panel { grid-template-columns: 1fr; } .doc-content { padding: 28px 22px; } .app-main { grid-template-columns: 1fr; } .app-side { display: none; } }
+</style>
+</head>
+<body>
+
+<main class="review-shell">
+
+  <!-- ===== 左栏：桌面端工作台原型 ===== -->
+  <section class="app-panel">
+    <div class="app-toolbar">
+      <span class="tb-label">原型控制台</span>
+      <div class="seg" id="ctrl-jump">
+        <button data-v="home" class="active">工作台</button>
+        <button data-v="call">通话流调</button>
+        <button data-v="graph">传播链</button>
+      </div>
+      <div class="seg" id="ctrl-state">
+        <button data-v="normal" class="active">正常态</button>
+        <button data-v="loading">AI处理中</button>
+        <button data-v="error">AI异常</button>
+        <button data-v="takeover">人工接管</button>
+      </div>
+      <div class="tb-spacer"></div>
+      <span class="tb-net">私有化部署 · 内网</span>
+    </div>
+
+    <div class="desktop">
+      <div class="desktop-bar">
+        <span class="dot-mac dot-r"></span><span class="dot-mac dot-y"></span><span class="dot-mac dot-g"></span>
+        <div class="desktop-url">🔒 cdc-epi.internal.gov.cn / 流调工作台</div>
+      </div>
+      <div class="screen" id="screen">
+        <div class="toast" id="toast"></div>
+      </div>
+    </div>
+  </section>
+
+  <!-- ===== 右栏：PRD 文档 + TOC ===== -->
+  <article class="doc-panel">
+    <div class="doc-content">
+      <div class="doc-header">
+        <div class="pills">
+          <span class="badge badge-warn">Draft</span>
+          <span class="badge badge-ok">MVP</span>
+          <span class="badge badge-blue">V1.0</span>
+        </div>
+        <h1>AI 传染病调查系统</h1>
+        <div class="desc">面向疾控一线流调人员的 AI 智能调查工具。通过 AI 智能对话采集、自动化数据结构化及传播链可视化，将调查员从「听、判断、追问、记录」的一心四用中解放出来，专注于建立信任与判断异常。全栈国产私有化部署，满足数据不出境、国产替代、等保合规三项政府硬约束。</div>
+        <div class="doc-meta">
+          <div><b>产品阶段</b> · MVP 规划</div>
+          <div><b>文档状态</b> · Draft</div>
+          <div><b>目标平台</b> · PC 端为主（网络稳定）</div>
+          <div><b>部署方式</b> · 政府私有化部署</div>
+          <div><b>核心用户</b> · 疾控一线流调人员</div>
+          <div><b>产品负责人</b> · AI 产品经理</div>
+        </div>
+      </div>
+
+      <h2 id="ch1">一、文档概述</h2>
+      <h3 id="ch1-1">1.1 项目背景</h3>
+      <p>传统传染病调查依赖人工电话问询，单次调查耗时约 <b>90 分钟</b>。调查员在通话过程中需同时完成「听、判断、追问、记录」四件事，认知负载过重，导致信息采集效率低、数据标准化程度差、多部门协同困难。</p>
+      <p>本产品由 AI 在后台完成记录、结构化与追问，让调查员专注于建立信任与判断异常。</p>
+
+      <h3 id="ch1-2">1.2 产品目标</h3>
+      <table>
+        <thead><tr><th>目标</th><th>说明</th></tr></thead>
+        <tbody>
+          <tr><td><b>效率目标</b></td><td>单次流调时长从 90 分钟压缩至 40 分钟，效率提升约 50%</td></tr>
+          <tr><td><b>质量目标</b></td><td>信息采集完整率从 60% 提升至 85%，显著改善数据质量</td></tr>
+          <tr><td><b>合规目标</b></td><td>全量国产私有化部署，满足数据不出境、国产替代、等保合规三项政府硬约束</td></tr>
+        </tbody>
+      </table>
+
+      <h3 id="ch1-3">1.3 目标用户</h3>
+      <p>疾控中心一线流调人员。核心特征：以电话问询为主要工作方式、工作环境网络稳定（<b>PC 端为主</b>）、对数据准确性要求高、普遍缺乏 AI 工具使用经验。因此产品交互需<b>简洁直观、降低学习成本</b>。</p>
+
+      <h2 id="ch2">二、功能需求</h2>
+      <blockquote>本版本包含九大功能模块，覆盖从语音采集、智能对话、信息抽取到传播链分析的完整流调链路。点击下方模块可在左侧原型中查看对应界面。</blockquote>
+      <div class="module-map">
+        <div class="mm" data-jump="call"><div class="mm-n">2.1 ASR</div><div class="mm-t">语音实时转录</div></div>
+        <div class="mm" data-jump="call"><div class="mm-n">2.2 LLM</div><div class="mm-t">基础对话引擎</div></div>
+        <div class="mm" data-jump="call"><div class="mm-n">2.3 追问</div><div class="mm-t">智能追问</div></div>
+        <div class="mm" data-jump="call"><div class="mm-n">2.4 NER</div><div class="mm-t">信息抽取</div></div>
+        <div class="mm" data-jump="report"><div class="mm-n">2.5 JSON</div><div class="mm-t">结构化与报告</div></div>
+        <div class="mm" data-jump="graph"><div class="mm-n">2.6 图谱</div><div class="mm-t">传播链分析</div></div>
+        <div class="mm" data-jump="call"><div class="mm-n">2.7 RAG</div><div class="mm-t">疾病知识库</div></div>
+        <div class="mm" data-jump="home"><div class="mm-n">2.8 评估</div><div class="mm-t">评估与迭代</div></div>
+        <div class="mm" data-jump="takeover"><div class="mm-n">2.9 兜底</div><div class="mm-t">人工介入节点</div></div>
+      </div>
+
+      <h3 id="ch2-1">2.1 语音实时转录（ASR）</h3>
+      <p><b>功能描述</b>：电话接入后，将被调者语音实时转录为文字，调查员无需手动记录。<br><b>技术方案</b>：Whisper 模型本地私有化部署，适配 8kHz 电话音质及方言场景。<br><b>性能要求</b>：中文识别准确率 ≥ 90%，转录延迟控制在可接受范围。<br><b>选型理由</b>：开源免授权费、数据不出境，满足政府数据主权要求。</p>
+
+      <h3 id="ch2-2">2.2 基础对话引擎</h3>
+      <p><b>功能描述</b>：LLM 理解被调者回答，判断回答了哪个字段、信息是否完整，驱动多轮对话。<br><b>技术方案</b>：基于 Qwen2-72B，采用 Prompt 四层架构（角色层、流程层、约束层、Few-shot 层）。<br><b>核心设计</b>：将标准流调问卷结构隐式编码进对话逻辑，实现字段自动覆盖。</p>
+
+      <h3 id="ch2-3">2.3 智能追问</h3>
+      <p><b>功能描述</b>：自动识别字段缺失或表达模糊，生成自然的追问话术，引导被调者补全信息。<br><b>技术方案</b>：规则引擎校验字段完整性 + LLM 生成自然语言话术的双层机制。</p>
+      <div class="callout info">示例：被调者回答「大概上周」时，规则识别日期模糊，LLM 追问「具体是上周几」。该追问时追问准确、不该追问时不冗余打扰，是压缩调查时长的核心能力。</div>
+
+      <h3 id="ch2-4">2.4 信息抽取（NER）</h3>
+      <p><b>功能描述</b>：从对话文本中提取结构化实体：日期、地点、人名、症状、接触关系等。<br><b>技术方案</b>：MacBERT NER 做实时粗提取 + LLM 做语义校验与歧义消解的双层架构。<br><b>选型理由</b>：MacBERT 中文医疗语料预训练，速度快、成本低；LLM 弥补语境理解不足。</p>
+
+      <h3 id="ch2-5">2.5 数据结构化与报告</h3>
+      <p><b>功能描述</b>：将非结构化对话自动转化为标准 JSON，输出格式兼容 CDC 报告标准。<br><b>核心逻辑</b>：制定字段强制校验规则与时序重建逻辑，日期归一化为 <code>YYYY-MM-DD</code>。<br><b>校验规则</b>：地点拆分为省、市、区三级；异常值自动标红，不确定信息标注 <code>uncertain</code>。</p>
+
+      <h3 id="ch2-6">2.6 传播链分析</h3>
+      <p><b>功能描述</b>：基于多条流调记录自动构建传播关系图谱，识别密接人员。<br><b>技术方案</b>：Neo4j 图数据库存储，支持多跳关系查询，三代以内密接溯源。<br><b>可视化输出</b>：生成传播链拓扑图与风险热力地图，辅助溯源与管控决策。</p>
+
+      <h3 id="ch2-7">2.7 RAG 疾病知识库</h3>
+      <p><b>功能描述</b>：为 LLM 提供专业知识支撑，使回答有依据而非依赖参数记忆。<br><b>技术方案</b>：BGE 向量模型 + Milvus 向量数据库，将诊断标准、流调模板向量化检索。<br><b>工作流程</b>：对话中识别病种后实时检索对应追问字段清单与诊断标准，注入 LLM 上下文。</p>
+
+      <h3 id="ch2-8">2.8 评估体系与迭代闭环</h3>
+      <p><b>功能描述</b>：从零搭建对话质量、信息提取、溯源准确、效率四维评估体系。<br><b>评估集</b>：构建 500+ 条脱敏标注评估集，覆盖多病种、多场景。<br><b>迭代机制</b>：建立「低分样本回捞 → 专家标注 → 两周迭代 → 灰度放量」的持续优化闭环。</p>
+
+      <h3 id="ch2-9">2.9 人工介入节点</h3>
+      <p><b>功能描述</b>：调查员界面始终提供「一键接管」按钮，可随时切换到人工对话。<br><b>触发逻辑</b>：简单规则触发提醒——被调者连续 3 次答非所问、信息严重矛盾、对话跑偏。<br><b>设计原则</b>：AI 判断不必 100% 准确，人工兜底保证全流程可控。</p>
+
+      <h2 id="ch3">三、技术架构与选型</h2>
+      <p>全栈采用国产可私有化方案，第一选型原则为满足政府三项硬约束：<b>数据不出境、国产替代、等保合规</b>。</p>
+      <table>
+        <thead><tr><th>层级</th><th>选型</th><th>用途</th></tr></thead>
+        <tbody>
+          <tr><td>语音识别 ASR</td><td>Whisper</td><td>电话语音实时转录，本地部署</td></tr>
+          <tr><td>对话引擎 LLM</td><td>Qwen2-72B</td><td>多轮对话、意图理解、追问生成</td></tr>
+          <tr><td>信息抽取 NER</td><td>MacBERT + LLM 校验</td><td>实体识别与语义校验双层架构</td></tr>
+          <tr><td>向量化</td><td>BGE</td><td>疾病知识库向量化</td></tr>
+          <tr><td>向量数据库</td><td>Milvus</td><td>RAG 知识库实时检索</td></tr>
+          <tr><td>图数据库</td><td>Neo4j</td><td>传播链存储与多跳溯源</td></tr>
+          <tr><td>追问控制</td><td>规则引擎</td><td>字段完整性校验（非模型）</td></tr>
+        </tbody>
+      </table>
+      <h3 id="ch3-1">3.1 关键架构决策</h3>
+      <ul>
+        <li><b>工程原则</b>：能用规则解决的不用模型，能用小模型解决的不用大模型，平衡速度、成本与准确</li>
+        <li><b>微调策略</b>：MVP 阶段 LLM 以 Prompt Engineering 为主，模型微调作为后期优化方向</li>
+        <li><b>备选方案</b>：传播链存储如客户对国产化要求极严，可用国产 NebulaGraph 替代 Neo4j</li>
+      </ul>
+
+      <h2 id="ch4">四、单次流调核心流程</h2>
+      <ol>
+        <li>电话接入，调查员与被调者建立对话</li>
+        <li>Whisper 实时转录被调者语音为文字</li>
+        <li>LLM 理解回答，判断填充了哪个字段</li>
+        <li>MacBERT 抽取实体，LLM 校验歧义</li>
+        <li>规则引擎检测字段缺口，LLM 生成追问话术</li>
+        <li>异常场景触发，调查员一键接管（兜底）</li>
+        <li>对话结束，自动生成结构化 JSON 供调查员确认</li>
+        <li>多条记录汇聚，Neo4j 构建传播链图谱</li>
+      </ol>
+      <div class="callout">整个流程中，调查员只需专注「建立信任、判断异常」，听、懂、问、记四件事全部由 AI 在后台完成。</div>
+
+      <h2 id="ch5">五、验收指标</h2>
+      <table>
+        <thead><tr><th>指标维度</th><th>基线</th><th>目标值</th></tr></thead>
+        <tbody>
+          <tr><td>单次流调时长</td><td>90 分钟</td><td>40 分钟（提升约 50%）</td></tr>
+          <tr><td>日均处理量</td><td>—</td><td>提升约 3 倍</td></tr>
+          <tr><td>信息采集完整率</td><td>60%</td><td>85%</td></tr>
+          <tr><td>漏报率</td><td>—</td><td>降低约 10%</td></tr>
+          <tr><td>意图识别准确率</td><td>—</td><td>内部评估集约 90%</td></tr>
+          <tr><td>用户满意度</td><td>—</td><td>4.5 / 5</td></tr>
+        </tbody>
+      </table>
+      <div class="callout info">注：以上指标需对照项目真实数据最终确认。意图识别准确率建议表述为「内部评估集上约 90%」，并明确评估集规模与意图分类数量，以应对评审追问。</div>
+
+      <h2 id="ch6">六、范围与边界</h2>
+      <h3 id="ch6-1">6.1 本版本包含</h3>
+      <p>上述九大功能模块为本版本完整交付范围，覆盖语音采集、智能对话、信息抽取、数据结构化、传播链分析、知识库检索、评估迭代与人工兜底的全链路能力。</p>
+      <h3 id="ch6-2">6.2 明确不做</h3>
+      <ul>
+        <li><b>最终流行病学因果判断</b>——AI 仅提供证据与可能性，结论由持证专家确认</li>
+        <li><b>信息真伪核实</b>——被调者说谎或记错，AI 无法识别，仅记录其陈述</li>
+        <li><b>情绪分类模型</b>——本版本以简单规则替代，不引入独立情绪模型</li>
+        <li><b>罕见/新型病种的特异性追问</b>——超出知识库范围时转人工补充</li>
+      </ul>
+      <h3 id="ch6-3">6.3 AI 能力边界说明</h3>
+      <div class="callout warn">AI 负责「听、懂、问、记」，人工负责「建立信任、判断异常、最终决策」。被调者情绪失控、信息明显矛盾、流行病学最终判断、新型病种特殊字段四类场景，<b>必须由人工接管</b>——这是设计阶段即确定的边界，而非能力缺陷。</div>
+
+      <h3>评审自查清单</h3>
+      <ul class="checklist">
+        <li>九大功能模块全部覆盖</li>
+        <li>技术选型完整（7 项，均满足三项硬约束）</li>
+        <li>NER 双层架构（MacBERT + LLM 校验）说明清晰</li>
+        <li>追问双层机制（规则 + LLM）分工明确</li>
+        <li>结构化 JSON 校验规则（标红 / uncertain）已定义</li>
+        <li>人工介入四类触发场景已明确</li>
+        <li>验收指标含基线与目标值</li>
+        <li class="unchecked">验收指标对照真实数据最终确认（待执行）</li>
+        <li class="unchecked">评估集规模与意图分类数量明确（待执行）</li>
+      </ul>
+    </div>
+
+    <!-- TOC -->
+    <nav class="doc-toc">
+      <h4>目录</h4>
+      <ol>
+        <li class="toc-group">
+          <button class="toc-toggle" type="button" data-target="ch1" aria-expanded="true">一、文档概述</button>
+          <ol class="toc-children">
+            <li><a href="#ch1-1" class="l2">1.1 项目背景</a></li>
+            <li><a href="#ch1-2" class="l2">1.2 产品目标</a></li>
+            <li><a href="#ch1-3" class="l2">1.3 目标用户</a></li>
+          </ol>
+        </li>
+        <li class="toc-group">
+          <button class="toc-toggle" type="button" data-target="ch2" aria-expanded="true">二、功能需求</button>
+          <ol class="toc-children">
+            <li><a href="#ch2-1" class="l2">2.1 语音转录 ASR</a></li>
+            <li><a href="#ch2-2" class="l2">2.2 基础对话引擎</a></li>
+            <li><a href="#ch2-3" class="l2">2.3 智能追问</a></li>
+            <li><a href="#ch2-4" class="l2">2.4 信息抽取 NER</a></li>
+            <li><a href="#ch2-5" class="l2">2.5 结构化与报告</a></li>
+            <li><a href="#ch2-6" class="l2">2.6 传播链分析</a></li>
+            <li><a href="#ch2-7" class="l2">2.7 RAG 知识库</a></li>
+            <li><a href="#ch2-8" class="l2">2.8 评估与迭代</a></li>
+            <li><a href="#ch2-9" class="l2">2.9 人工介入</a></li>
+          </ol>
+        </li>
+        <li class="toc-group">
+          <button class="toc-toggle" type="button" data-target="ch3" aria-expanded="true">三、技术架构与选型</button>
+          <ol class="toc-children">
+            <li><a href="#ch3-1" class="l2">3.1 关键架构决策</a></li>
+          </ol>
+        </li>
+        <li><a href="#ch4">四、单次流调核心流程</a></li>
+        <li><a href="#ch5">五、验收指标</a></li>
+        <li class="toc-group">
+          <button class="toc-toggle" type="button" data-target="ch6" aria-expanded="true">六、范围与边界</button>
+          <ol class="toc-children">
+            <li><a href="#ch6-1" class="l2">6.1 本版本包含</a></li>
+            <li><a href="#ch6-2" class="l2">6.2 明确不做</a></li>
+            <li><a href="#ch6-3" class="l2">6.3 能力边界</a></li>
+          </ol>
+        </li>
+      </ol>
+    </nav>
+  </article>
+</main>
+
+<script>
+window.state = {
+  route: 'home',          // home | call | report | graph
+  errState: 'normal',     // normal | loading | error | takeover
+  active: 'call',         // 侧边栏高亮
+  callStep: 2,            // 通话内步骤
+};
+
+const SIDE = [
+  { sep: '调查' },
+  { id: 'home',   ic: '⌂', label: '流调工作台' },
+  { id: 'call',   ic: '☎', label: '通话流调', active: ['call','report'] },
+  { id: 'report', ic: '▤', label: '结构化报告' },
+  { sep: '分析' },
+  { id: 'graph',  ic: '⬡', label: '传播链图谱' },
+  { id: 'eval',   ic: '◷', label: '评估与迭代' },
+  { sep: '系统' },
+  { id: 'kb',     ic: '📚', label: '疾病知识库' },
+];
+
+function showToast(text) {
+  const t = document.getElementById('toast');
+  t.textContent = text; t.classList.add('show');
+  clearTimeout(window._tt);
+  window._tt = setTimeout(() => t.classList.remove('show'), 1800);
+}
+
+function navigate(route) {
+  state.route = route;
+  if (route === 'report') state.active = 'report';
+  else if (route === 'call') state.active = 'call';
+  else state.active = route;
+  render();
+}
+
+function topbar(title, sub) {
+  const NET = state.errState === 'error' ? '<span style="color:#ffd6d6;">⚠ AI 服务异常</span>'
+            : state.errState === 'takeover' ? '<span style="color:#ffd6d6;">● 人工接管中</span>'
+            : '<span>● 运行正常</span>';
+  return `
+    <div class="app-topbar">
+      <span class="app-logo">AI 传染病调查系统</span>
+      <span class="pill">私有化 · 等保三级</span>
+      <div class="app-topbar-right">
+        ${NET}
+        <span>调查员 · 王敏（CDC-021）</span>
+      </div>
+    </div>`;
+}
+
+function sidebar() {
+  return `<div class="app-side">` + SIDE.map(s => {
+    if (s.sep) return `<div class="side-sep">${s.sep}</div>`;
+    const on = (s.active ? s.active.includes(state.active) : state.active === s.id) ? 'on' : '';
+    return `<div class="side-item ${on}" data-nav="${s.id}"><span class="ic">${s.ic}</span>${s.label}</div>`;
+  }).join('') + `</div>`;
+}
+
+function render() {
+  const screen = document.getElementById('screen');
+  const toast = screen.querySelector('.toast');
+  let content = '';
+  switch (state.route) {
+    case 'home':   content = renderHome(); break;
+    case 'call':   content = renderCall(); break;
+    case 'report': content = renderReport(); break;
+    case 'graph':  content = renderGraph(); break;
+    default:       content = renderHome();
+  }
+  screen.innerHTML = topbar() + `<div class="app-main">${sidebar()}<div class="app-content">${content}</div></div>`;
+  screen.appendChild(toast);
+}
+
+/* ---------- 工作台主页 ---------- */
+function renderHome() {
+  const tasks = [
+    { id:'EPI-260524-018', name:'李某 · 男 · 42', dis:'新冠疑似', step:'AI追问中', pct:70, st:'doing' },
+    { id:'EPI-260524-017', name:'张某 · 女 · 29', dis:'诺如病毒', step:'待确认 JSON', pct:100, st:'review' },
+    { id:'EPI-260524-016', name:'王某 · 男 · 55', dis:'肺结核', step:'已归档', pct:100, st:'done' },
+    { id:'EPI-260524-015', name:'赵某 · 女 · 33', dis:'手足口', step:'人工接管', pct:45, st:'takeover' },
+  ];
+  const stBadge = { doing:'<span class="badge badge-ai">进行中</span>', review:'<span class="badge badge-warn">待确认</span>', done:'<span class="badge badge-ok">已归档</span>', takeover:'<span class="badge badge-error">人工</span>' };
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:flex-start;margin-bottom:16px;">
+      <div>
+        <div style="font-size:17px;font-weight:600;color:#1a1a1a;">流调工作台</div>
+        <div style="font-size:12px;color:#8b7e6b;margin-top:3px;">今日 · 2026-05-25 · 待命中</div>
+      </div>
+      <button class="primary-btn" data-nav="call">＋ 接入新通话</button>
+    </div>
+
+    <!-- 指标卡 -->
+    <div style="display:grid;grid-template-columns:repeat(4,1fr);gap:12px;margin-bottom:16px;">
+      ${[
+        ['今日完成','12','例','#1a1a1a'],
+        ['平均时长','41','分钟','#1a1a1a'],
+        ['采集完整率','86','%','#1a1a1a'],
+        ['待人工处理','1','项','#b5392c'],
+      ].map(([l,v,u,c])=>`
+        <div class="card" style="margin:0;">
+          <div style="font-size:11px;color:#8b7e6b;">${l}</div>
+          <div style="font-size:25px;font-weight:600;color:${c};margin-top:6px;line-height:1;">${v}<span style="font-size:11px;font-weight:400;color:#8b7e6b;"> ${u}</span></div>
+        </div>`).join('')}
+    </div>
+
+    <div class="sec-label">效率对比 · 单次流调时长（基线 90min → 目标 40min）</div>
+    <div class="card" style="display:flex;align-items:center;gap:16px;">
+      <div style="flex:1;">
+        <div style="font-size:10px;color:#8b7e6b;margin-bottom:4px;">传统人工</div>
+        <div style="height:14px;background:#e8e3d8;border-radius:7px;overflow:hidden;"><div style="width:100%;height:100%;background:#c8b89a;"></div></div>
+        <div style="font-size:11px;color:#8b7e6b;margin-top:3px;">90 分钟</div>
+      </div>
+      <div style="font-size:18px;color:#a8d4a0;">→</div>
+      <div style="flex:1;">
+        <div style="font-size:10px;color:#2d5a27;font-weight:600;margin-bottom:4px;">AI 辅助（当前）</div>
+        <div style="height:14px;background:#e8e3d8;border-radius:7px;overflow:hidden;"><div style="width:46%;height:100%;background:linear-gradient(90deg,#1a3d16,#2d5a27);"></div></div>
+        <div style="font-size:11px;color:#2d5a27;margin-top:3px;font-weight:600;">41 分钟 · 提升约 54%</div>
+      </div>
+    </div>
+
+    <div class="sec-label" style="margin-top:6px;">今日流调任务</div>
+    ${tasks.map(t=>`
+      <div class="card" data-nav="${t.st==='review'?'report':'call'}" style="cursor:pointer;display:flex;align-items:center;gap:14px;">
+        <div style="flex:1;">
+          <div style="display:flex;align-items:center;gap:8px;">
+            <span class="card-title">${t.id}</span>${stBadge[t.st]}
+          </div>
+          <div style="font-size:11px;color:#8b7e6b;margin-top:4px;">${t.name} · ${t.dis} · ${t.step}</div>
+        </div>
+        <div style="width:120px;">
+          <div style="height:6px;background:#e8e3d8;border-radius:4px;overflow:hidden;"><div style="width:${t.pct}%;height:100%;background:${t.st==='takeover'?'#c0392b':'#2d5a27'};"></div></div>
+        </div>
+        <span style="color:#ccc;">›</span>
+      </div>`).join('')}
+  `;
+}
+
+/* ---------- 通话流调（核心界面，已重构为整洁版） ---------- */
+function renderCall() {
+  const es = state.errState;
+  const live = es !== 'takeover'; // 人工接管时 AI 停止主导
+
+  // 顶部紧凑通话状态条：计时器与录音状态各占固定区域，绝不重叠
+  const callStatus = `
+    <div class="callbar ${live?'callbar-live':''}">
+      <span class="callbar-rec">${live?'●':'■'}</span>
+      <div class="callbar-wave">
+        ${Array.from({length:18}).map((_,i)=>`<i class="wv ${live?'live':''}" style="height:${live?(7+(i%4)*5):6}px;animation-delay:${i*0.06}s;"></i>`).join('')}
+      </div>
+      <div class="callbar-time">${live?'通话中 · 02:14':'已挂断'}</div>
+      <span class="callbar-eng">Whisper · 8kHz</span>
+    </div>`;
+
+  // 左栏：实时转录对话
+  const transcript = `
+    <div class="col-head">实时转录 · ASR <span class="col-sub">中文识别准确率 ≥ 90%</span></div>
+    <div class="chat-wrap">
+      <div class="bubble bubble-them">
+        <div class="bubble-meta">被调者 · 02:01</div>
+        我大概上周开始有点发烧，去过一趟海鲜市场。
+        <div class="field-tag">已识别：症状 · 暴露史</div>
+      </div>
+      <div class="bubble bubble-ai">
+        <div class="bubble-meta">AI 追问 · Qwen2-72B + 规则引擎</div>
+        具体是上周几开始发烧呢？海鲜市场是哪个区的，方便说下名称吗？
+      </div>
+      <div class="bubble bubble-them">
+        <div class="bubble-meta">被调者 · 02:08</div>
+        周三吧，市场在江汉区的，叫…华南那个。
+        <div class="field-tag">已识别：日期 · 地点</div>
+      </div>
+    </div>`;
+
+  // 右栏：抽取结果（随状态变化）
+  let extractBlock = '';
+  if (es === 'loading') {
+    extractBlock = `
+      <div class="col-head">字段抽取 · NER <span class="col-sub">MacBERT + LLM 校验</span></div>
+      <div class="panel">
+        <div style="font-size:11px;color:#8b7e6b;margin-bottom:10px;">AI 正在抽取体征与实体…</div>
+        <div class="skeleton" style="height:12px;width:72%;margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:12px;width:54%;margin-bottom:8px;"></div>
+        <div class="skeleton" style="height:12px;width:64%;"></div>
+      </div>`;
+  } else if (es === 'error') {
+    extractBlock = `
+      <div class="col-head">字段抽取 · NER</div>
+      <div class="error-banner" style="margin-bottom:10px;">AI 抽取服务暂不可用，已切换降级模式。转录仍在继续，可手动录入字段。</div>
+      <button class="btn-sec" style="width:100%;">手动录入字段</button>`;
+  } else {
+    extractBlock = `
+      <div class="col-head">字段抽取 · NER <span class="col-sub">MacBERT + LLM 校验</span></div>
+      <div class="field-grid">
+        <div class="fb"><span class="fb-l">症状</span><span class="fb-v">发热</span></div>
+        <div class="fb"><span class="fb-l">发病日期</span><span class="fb-v">2026-05-21</span></div>
+        <div class="fb"><span class="fb-l">省 / 市</span><span class="fb-v">湖北 · 武汉</span></div>
+        <div class="fb"><span class="fb-l">区</span><span class="fb-v">江汉区</span></div>
+        <div class="fb"><span class="fb-l">暴露场所</span><span class="fb-v">海鲜市场</span></div>
+        <div class="fb unsure"><span class="fb-l">场所名称 ⚠</span><span class="fb-v">华南（待确认）</span></div>
+      </div>
+      <div class="progress-card">
+        <div class="pc-head"><span>AI 字段覆盖 · 隐式问卷</span><b>14 / 20</b></div>
+        <div class="pc-track"><span style="width:70%"></span></div>
+        <div class="pc-note">缺失：密接名单、活动轨迹、疫苗史 — AI 将自动追问补全</div>
+      </div>
+      <div class="rag-card">
+        <div class="rag-head">RAG 知识库注入 · BGE + Milvus</div>
+        <div class="rag-body">已识别病种「新冠疑似」，检索到追问字段清单（潜伏期 1–14 天，需采集发病前 14 天轨迹）与诊断标准，已注入 LLM 上下文。</div>
+      </div>`;
+  }
+
+  const takeoverNotice = es === 'takeover' ? `
+    <div class="warn-banner" style="background:#fff0f0;border-color:#ffd0d0;color:#c92929;margin-bottom:14px;">
+      <b>人工接管中</b> · 触发原因：被调者连续 3 次答非所问。AI 已暂停自动追问，转录与抽取仍在后台运行。
+    </div>` : '';
+
+  return `
+    <div class="page-bar">
+      <div>
+        <div class="page-h1">通话流调 · EPI-260524-018</div>
+        <div class="page-h2">李某 · 男 · 42 · 新冠疑似</div>
+      </div>
+      <div class="seg">
+        <button class="${live?'active':''}" data-act="resume">AI 主导</button>
+        <button class="${live?'':'active'}" data-act="takeover">人工</button>
+      </div>
+    </div>
+
+    <div class="stepper">
+      ${['接入通话','实时转录','信息抽取','智能追问','生成报告'].map((s,i)=>{
+        const cls = i<2?'done':i===2?'on':'';
+        return `<div class="step ${cls}"><span class="num">${i<2?'✓':i+1}</span><span class="step-t">${s}</span></div>`;
+      }).join('')}
+    </div>
+
+    ${takeoverNotice}
+    ${callStatus}
+
+    <div class="call-grid">
+      <div class="call-col">${transcript}</div>
+      <div class="call-col">${extractBlock}</div>
+    </div>
+
+    <div class="footer-bar">
+      ${es==='takeover'
+        ? `<button class="primary-btn" data-act="resume">↩ 交还 AI 继续</button><span class="footer-note">人工主导中</span>`
+        : `<button class="takeover-btn" data-act="takeover">✋ 一键接管</button><span class="footer-note">AI 判断不必 100% 准确，人工兜底全程可控</span>`}
+      <div style="flex:1"></div>
+      <button class="primary-btn" data-nav="report">结束通话 · 生成报告 →</button>
+    </div>
+  `;
+}
+
+/* ---------- 结构化报告 / JSON 确认 ---------- */
+function renderReport() {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px;">
+      <div>
+        <div style="font-size:16px;font-weight:600;">结构化报告确认 · EPI-260524-018</div>
+        <div style="font-size:11px;color:#8b7e6b;margin-top:2px;">兼容 CDC 报告标准 · 调查员确认后归档</div>
+      </div>
+      <span class="badge badge-warn">待确认</span>
+    </div>
+    <div class="warn-banner">📋 AI 已自动生成结构化数据。<b>异常值已标红</b>，<b>不确定信息标注 uncertain</b>，请逐项核对后确认归档。</div>
+    <div style="display:grid;grid-template-columns:1.1fr 0.9fr;gap:16px;align-items:start;">
+      <div>
+        <div class="sec-label">标准 JSON 输出</div>
+        <div class="json-view"><span class="j-key">"case_id"</span>: <span class="j-str">"EPI-260524-018"</span>,
+<span class="j-key">"patient"</span>: {
+  <span class="j-key">"name"</span>: <span class="j-str">"李某"</span>, <span class="j-key">"sex"</span>: <span class="j-str">"男"</span>, <span class="j-key">"age"</span>: <span class="j-num">42</span>
+},
+<span class="j-key">"onset_date"</span>: <span class="j-str">"2026-05-21"</span>,
+<span class="j-key">"symptoms"</span>: [<span class="j-str">"发热"</span>],
+<span class="j-key">"exposure"</span>: {
+  <span class="j-key">"province"</span>: <span class="j-str">"湖北省"</span>,
+  <span class="j-key">"city"</span>: <span class="j-str">"武汉市"</span>,
+  <span class="j-key">"district"</span>: <span class="j-str">"江汉区"</span>,
+  <span class="j-key">"place"</span>: <span class="j-unsure">"华南海鲜市场(uncertain)"</span>
+},
+<span class="j-key">"temperature"</span>: <span class="j-flag">39.8</span> <span style="color:#6b8a68;">// 异常值</span>,
+<span class="j-key">"contacts_count"</span>: <span class="j-num">3</span>,
+<span class="j-key">"vaccine_doses"</span>: <span class="j-unsure">null(uncertain)</span></div>
+      </div>
+      <div>
+        <div class="sec-label">校验提示</div>
+        <div class="card" style="border-color:#ffd6d6;background:#fff8f8;">
+          <div style="font-size:12px;font-weight:600;color:#c0392b;">🔴 异常值 · 1 项</div>
+          <div style="font-size:11px;color:#8b7e6b;margin-top:5px;line-height:1.5;">体温 39.8℃ 超出常规范围，已标红，请核对录入是否正确。</div>
+        </div>
+        <div class="card" style="border-color:#e0c98a;background:#fffbf2;">
+          <div style="font-size:12px;font-weight:600;color:#b07a14;">🟡 不确定 · 2 项</div>
+          <div style="font-size:11px;color:#8b7e6b;margin-top:5px;line-height:1.5;">场所名称、疫苗剂次标注 uncertain，建议追问确认或保留待核。</div>
+        </div>
+        <div class="card" style="border-color:#b8e6c9;background:#f4fdf6;">
+          <div style="font-size:12px;font-weight:600;color:#2a7a3e;">🟢 已规范化 · 时序 + 三级地址</div>
+          <div style="font-size:11px;color:#8b7e6b;margin-top:5px;line-height:1.5;">日期归一化为 YYYY-MM-DD；地点已拆分省/市/区三级。</div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:4px;">
+          <button class="btn-sec">编辑字段</button>
+          <button class="primary-btn" data-act="archive">确认归档 ✓</button>
+        </div>
+      </div>
+    </div>
+  `;
+}
+
+/* ---------- 传播链图谱 ---------- */
+function renderGraph() {
+  return `
+    <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:12px;">
+      <div>
+        <div style="font-size:16px;font-weight:600;">传播链图谱</div>
+        <div style="font-size:11px;color:#8b7e6b;margin-top:2px;">Neo4j 多跳溯源 · 三代以内密接 · 共 9 个关联节点</div>
+      </div>
+      <div class="seg"><button class="active">拓扑图</button><button data-act="heat">风险热力</button></div>
+    </div>
+    <div class="legend">
+      <span><i class="lg-dot" style="background:#c0392b;"></i>确诊 / 指示病例</span>
+      <span><i class="lg-dot" style="background:#d4a017;"></i>密接（一代）</span>
+      <span><i class="lg-dot" style="background:#6b8a68;"></i>次密接（二代）</span>
+      <span><i class="lg-dot" style="background:#c8c0b0;"></i>待排查</span>
+    </div>
+    <div class="graph-stage">
+      <svg viewBox="0 0 560 320" width="100%" xmlns="http://www.w3.org/2000/svg" style="display:block;">
+        <!-- 连线 -->
+        <g stroke="#cdbfa8" stroke-width="1.6" fill="none">
+          <line x1="280" y1="160" x2="150" y2="80"/>
+          <line x1="280" y1="160" x2="150" y2="240"/>
+          <line x1="280" y1="160" x2="430" y2="100"/>
+          <line x1="280" y1="160" x2="430" y2="220"/>
+          <line x1="150" y1="80" x2="60" y2="40"/>
+          <line x1="150" y1="80" x2="60" y2="130"/>
+          <line x1="430" y1="220" x2="510" y2="270"/>
+          <line x1="430" y1="100" x2="510" y2="55"/>
+        </g>
+        <!-- 节点 -->
+        ${[
+          [280,160,22,'#c0392b','#fff','指示病例','李某'],
+          [150,80,16,'#d4a017','#5a3a00','一代','张某'],
+          [150,240,16,'#d4a017','#5a3a00','一代','赵某'],
+          [430,100,16,'#d4a017','#5a3a00','一代','陈某'],
+          [430,220,16,'#d4a017','#5a3a00','一代','刘某'],
+          [60,40,11,'#6b8a68','#fff','二代',''],
+          [60,130,11,'#6b8a68','#fff','二代',''],
+          [510,270,11,'#c8c0b0','#5a4a2a','待排',''],
+          [510,55,11,'#c8c0b0','#5a4a2a','待排',''],
+        ].map(([x,y,r,fill,tc,lbl,nm])=>`
+          <circle cx="${x}" cy="${y}" r="${r}" fill="${fill}"/>
+          <text x="${x}" y="${y+3}" font-size="9" font-weight="700" fill="${tc}" text-anchor="middle">${nm||lbl}</text>
+          ${nm?`<text x="${x}" y="${y+r+12}" font-size="8" fill="#8b7e6b" text-anchor="middle">${lbl}</text>`:''}
+        `).join('')}
+      </svg>
+    </div>
+    <div style="display:grid;grid-template-columns:repeat(3,1fr);gap:10px;">
+      <div class="card-cream" style="margin:0;"><div style="font-size:10px;color:#8b7e6b;">指示病例</div><div style="font-size:22px;font-weight:700;color:#c0392b;">1</div></div>
+      <div class="card-cream" style="margin:0;"><div style="font-size:10px;color:#8b7e6b;">一代密接</div><div style="font-size:22px;font-weight:700;color:#d4a017;">4</div></div>
+      <div class="card-cream" style="margin:0;"><div style="font-size:10px;color:#8b7e6b;">二代+待排</div><div style="font-size:22px;font-weight:700;color:#2d5a27;">4</div></div>
+    </div>
+    <div class="rag-box" style="margin-top:12px;">
+      <div class="rag-lbl">⬡ 溯源提示 · Neo4j 多跳查询</div>
+      <div class="rag-txt">指示病例「李某」与一代密接共同暴露点为江汉区海鲜市场；建议优先排查二代节点，缩短溯源响应时间。</div>
+    </div>
+  `;
+}
+
+/* ---------- 事件绑定 ---------- */
+document.getElementById('screen').addEventListener('click', e => {
+  const navEl = e.target.closest('[data-nav]');
+  const actEl = e.target.closest('[data-act]');
+  if (navEl) { navigate(navEl.dataset.nav); return; }
+  if (actEl) {
+    const a = actEl.dataset.act;
+    if (a === 'takeover') { state.errState = 'takeover'; render(); showToast('已切换人工接管'); }
+    else if (a === 'resume') { state.errState = 'normal'; render(); showToast('已交还 AI 继续'); }
+    else if (a === 'archive') { showToast('报告已确认归档 ✓'); navigate('home'); }
+    else if (a === 'heat') showToast('风险热力地图 · 演示态');
+  }
+});
+
+// 顶部控制台
+document.getElementById('ctrl-jump').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  document.querySelectorAll('#ctrl-jump button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  navigate(btn.dataset.v);
+});
+document.getElementById('ctrl-state').addEventListener('click', e => {
+  const btn = e.target.closest('button'); if (!btn) return;
+  document.querySelectorAll('#ctrl-state button').forEach(b=>b.classList.remove('active'));
+  btn.classList.add('active');
+  state.errState = btn.dataset.v;
+  if (btn.dataset.v !== 'normal' && state.route !== 'call') navigate('call');
+  else render();
+});
+
+// 文档内模块卡片跳转
+document.querySelectorAll('[data-jump]').forEach(el => {
+  el.addEventListener('click', () => {
+    const r = el.dataset.jump;
+    if (r === 'takeover') { state.errState = 'takeover'; navigate('call'); }
+    else navigate(r);
+    document.querySelector('.app-panel').scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
+
+// TOC 折叠
+document.querySelectorAll('.doc-toc .toc-toggle').forEach(btn => {
+  btn.addEventListener('click', () => {
+    const group = btn.closest('.toc-group');
+    const collapsed = group.classList.toggle('collapsed');
+    btn.setAttribute('aria-expanded', String(!collapsed));
+    const target = document.getElementById(btn.dataset.target);
+    if (target && !collapsed) target.scrollIntoView({ behavior:'smooth', block:'start' });
+  });
+});
+
+render();
+</script>
+</body>
+</html>
