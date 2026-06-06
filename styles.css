@@ -1897,6 +1897,7 @@ dd {
   margin-top: 0.36rem;
   font-size: 0.9rem;
   line-height: 1.45;
+  white-space: nowrap;
 }
 
 .detail-content {
@@ -2163,6 +2164,7 @@ dd {
   display: block;
   margin-top: 0.55rem;
   line-height: 1.45;
+  white-space: nowrap;
 }
 
 .detail-nav {
